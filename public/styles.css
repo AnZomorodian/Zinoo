@@ -95,7 +95,19 @@ body {
     margin-bottom: 1.5rem;
 }
 
-/* Logo icon removed - no longer needed */
+.logo-image {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.logo-image-small {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+}
 
 .brand-logo h1 {
     font-size: 3rem;

@@ -1,7 +1,7 @@
 // Socket.IO connection
 const socket = io();
 
-// DOM elements
+// DOM elements - safely get them
 const authScreen = document.getElementById('authScreen');
 const chatContainer = document.getElementById('chatContainer');
 const signInForm = document.getElementById('signInForm');
@@ -66,25 +66,32 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
-    // Auth form switching
-    showSignUp.addEventListener('click', switchToSignUp);
-    showSignIn.addEventListener('click', switchToSignIn);
+    // Auth form switching - check if elements exist
+    if (showSignUp) showSignUp.addEventListener('click', switchToSignUp);
+    if (showSignIn) showSignIn.addEventListener('click', switchToSignIn);
     
     // Auth forms
-    loginForm.addEventListener('submit', handleSignIn);
-    registerForm.addEventListener('submit', handleSignUp);
+    if (loginForm) loginForm.addEventListener('submit', handleSignIn);
+    if (registerForm) registerForm.addEventListener('submit', handleSignUp);
     
-    // Message sending
-    messageInput.addEventListener('keypress', handleMessageKeypress);
-    messageInput.addEventListener('input', handleTyping);
-    sendButton.addEventListener('click', sendMessage);
+    // Message sending - check if elements exist
+    if (messageInput) {
+        messageInput.addEventListener('keypress', handleMessageKeypress);
+        messageInput.addEventListener('input', handleTyping);
+    }
+    if (sendButton) sendButton.addEventListener('click', sendMessage);
     
-    // Settings
-    settingsBtn.addEventListener('click', openSettings);
-    settingsForm.addEventListener('submit', handleSettingsUpdate);
-    document.getElementById('closeSettingsBtn').addEventListener('click', closeSettings);
-    document.getElementById('cancelSettingsBtn').addEventListener('click', closeSettings);
-    overlay.addEventListener('click', closeSettings);
+    // Settings - check if elements exist
+    if (settingsBtn) settingsBtn.addEventListener('click', openSettings);
+    if (settingsForm) settingsForm.addEventListener('submit', handleSettingsUpdate);
+    
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    if (closeSettingsBtn) closeSettingsBtn.addEventListener('click', closeSettings);
+    
+    const cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
+    if (cancelSettingsBtn) cancelSettingsBtn.addEventListener('click', closeSettings);
+    
+    if (overlay) overlay.addEventListener('click', closeSettings);
     
     // Copy buttons
     document.querySelectorAll('.copy-btn').forEach(btn => {
@@ -270,8 +277,8 @@ function handleSignUp(e) {
 
 function handleAuthSuccess(userData) {
     currentUser = userData;
-    currentUserName.textContent = userData.displayName || userData.username;
-    currentUserId.textContent = userData.userId || '#000000';
+    if (currentUserName) currentUserName.textContent = userData.displayName || userData.username;
+    if (currentUserId) currentUserId.textContent = userData.userId || '#000000';
     showChatInterface();
     hideAuthError();
     resetAuthForms();
@@ -359,14 +366,6 @@ function showReplyIndicator(username, message) {
     `;
     
     inputContainer.insertBefore(replyIndicator, inputContainer.firstChild);
-}
-
-function clearReply() {
-    replyToMessage = null;
-    const replyIndicator = document.querySelector('.reply-indicator');
-    if (replyIndicator) {
-        replyIndicator.remove();
-    }
 }
 
 function clearReply() {
@@ -600,7 +599,18 @@ function showChatInterface() {
     authScreen.classList.remove('active');
     authScreen.classList.add('hidden');
     chatContainer.classList.remove('hidden');
-    messageInput.focus();
+    if (messageInput) messageInput.focus();
+}
+
+function showChat() {
+    showChatInterface();
+    // Update user info if elements exist
+    if (currentUserName && currentUser) {
+        currentUserName.textContent = currentUser.displayName || currentUser.username;
+    }
+    if (currentUserId && currentUser) {
+        currentUserId.textContent = currentUser.userId || '#000000';
+    }
 }
 
 function showAuthScreen() {

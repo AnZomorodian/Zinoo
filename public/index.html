@@ -226,7 +226,17 @@
                 <!-- Message Input -->
                 <div class="message-input-container">
                     <div class="input-wrapper-chat">
-                        <textarea id="messageInput" class="message-input" placeholder="Type your message..." rows="1"></textarea>
+                        <div class="message-tools">
+                            <button id="emojiBtn" class="tool-button" title="Emoji">
+                                😀
+                            </button>
+                            <button id="attachBtn" class="tool-button" title="Coming Soon" disabled>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.64 16.2a2 2 0 0 1-2.83-2.83l8.49-8.49"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <textarea id="messageInput" class="message-input" placeholder="Type your message... (Press Enter to send)" rows="1"></textarea>
                         <button id="sendButton" class="send-button" title="Send message">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -234,17 +244,50 @@
                             </svg>
                         </button>
                     </div>
+                    <div id="emojiPicker" class="emoji-picker hidden">
+                        <div class="emoji-grid">
+                            <button class="emoji-option">😀</button>
+                            <button class="emoji-option">😊</button>
+                            <button class="emoji-option">😂</button>
+                            <button class="emoji-option">🤣</button>
+                            <button class="emoji-option">😍</button>
+                            <button class="emoji-option">🥰</button>
+                            <button class="emoji-option">😎</button>
+                            <button class="emoji-option">🤔</button>
+                            <button class="emoji-option">😮</button>
+                            <button class="emoji-option">😱</button>
+                            <button class="emoji-option">😢</button>
+                            <button class="emoji-option">😭</button>
+                            <button class="emoji-option">😤</button>
+                            <button class="emoji-option">🙄</button>
+                            <button class="emoji-option">👍</button>
+                            <button class="emoji-option">👎</button>
+                            <button class="emoji-option">👏</button>
+                            <button class="emoji-option">🙌</button>
+                            <button class="emoji-option">❤️</button>
+                            <button class="emoji-option">💯</button>
+                            <button class="emoji-option">🔥</button>
+                            <button class="emoji-option">⭐</button>
+                            <button class="emoji-option">✨</button>
+                            <button class="emoji-option">🎉</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Settings Modal -->
+    <!-- Enhanced Settings Modal -->
     <div id="settingsModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Profile Settings</h3>
-                <button id="closeSettings" class="close-btn" onclick="closeSettings()">
+                <h3 class="modal-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                    Profile & Settings
+                </h3>
+                <button id="closeSettings" class="close-btn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -252,65 +295,318 @@
                 </button>
             </div>
             
-            <form class="settings-form">
-                <div class="form-group">
-                    <label for="newDisplayName">Display Name</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="newDisplayName" class="form-input" placeholder="Your display name" maxlength="100">
-                    </div>
-                </div>
-                
-                <div class="form-row">
+            <!-- Settings Tabs -->
+            <div class="settings-tabs">
+                <button class="tab-button active" data-tab="profile">Profile</button>
+                <button class="tab-button" data-tab="preferences">Preferences</button>
+                <button class="tab-button" data-tab="account">Account</button>
+                <button class="tab-button" data-tab="about">About</button>
+            </div>
+
+            <!-- Profile Tab -->
+            <div id="profileTab" class="tab-content active">
+                <div class="settings-section">
+                    <h4 class="section-title">Personal Information</h4>
+                    
                     <div class="form-group">
-                        <label for="newAvatarColor">Avatar Color</label>
+                        <label for="newDisplayName">Display Name</label>
                         <div class="input-wrapper">
-                            <input type="color" id="newAvatarColor" class="form-input" value="#667eea">
+                            <input type="text" id="newDisplayName" class="form-input" placeholder="Your display name" maxlength="100">
+                            <div class="input-counter">
+                                <span id="displayNameCounter">0</span>/100
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newAvatarColor">Avatar Color</label>
+                            <div class="color-input-wrapper">
+                                <input type="color" id="newAvatarColor" class="color-input" value="#667eea">
+                                <div class="color-preview" id="colorPreview"></div>
+                                <div class="color-presets">
+                                    <button type="button" class="color-preset" data-color="#667eea" style="background: #667eea"></button>
+                                    <button type="button" class="color-preset" data-color="#00d4aa" style="background: #00d4aa"></button>
+                                    <button type="button" class="color-preset" data-color="#ff6b6b" style="background: #ff6b6b"></button>
+                                    <button type="button" class="color-preset" data-color="#4ecdc4" style="background: #4ecdc4"></button>
+                                    <button type="button" class="color-preset" data-color="#45b7d1" style="background: #45b7d1"></button>
+                                    <button type="button" class="color-preset" data-color="#f9ca24" style="background: #f9ca24"></button>
+                                    <button type="button" class="color-preset" data-color="#f0932b" style="background: #f0932b"></button>
+                                    <button type="button" class="color-preset" data-color="#eb4d4b" style="background: #eb4d4b"></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Avatar Preview</label>
+                            <div class="avatar-preview-container">
+                                <div id="avatarPreview" class="avatar-preview">U</div>
+                                <span class="avatar-preview-text">Preview</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newBio">Bio</label>
+                        <div class="input-wrapper">
+                            <textarea id="newBio" class="form-input bio-input" placeholder="Tell us about yourself..." rows="3" maxlength="500"></textarea>
+                            <div class="input-counter">
+                                <span id="bioCounter">0</span>/500
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Status</label>
+                        <div class="status-selector">
+                            <div class="status-option active" data-status="online">
+                                <div class="status-dot online"></div>
+                                <span>Online</span>
+                                <div class="status-description">Available to chat</div>
+                            </div>
+                            <div class="status-option" data-status="away">
+                                <div class="status-dot away"></div>
+                                <span>Away</span>
+                                <div class="status-description">Temporarily unavailable</div>
+                            </div>
+                            <div class="status-option" data-status="busy">
+                                <div class="status-dot busy"></div>
+                                <span>Busy</span>
+                                <div class="status-description">Please don't disturb</div>
+                            </div>
+                            <div class="status-option" data-status="invisible">
+                                <div class="status-dot invisible"></div>
+                                <span>Invisible</span>
+                                <div class="status-description">Appear offline to others</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="newBio">Bio</label>
-                    <div class="input-wrapper">
-                        <textarea id="newBio" class="form-input" placeholder="Tell us about yourself..." rows="3" maxlength="500"></textarea>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>Status</label>
-                    <div class="status-selector">
-                        <div class="status-option active" data-status="online">
-                            <div class="status-dot online"></div>
-                            <span>Online</span>
-                        </div>
-                        <div class="status-option" data-status="away">
-                            <div class="status-dot away"></div>
-                            <span>Away</span>
-                        </div>
-                        <div class="status-option" data-status="busy">
-                            <div class="status-dot busy"></div>
-                            <span>Busy</span>
+            </div>
+
+            <!-- Preferences Tab -->
+            <div id="preferencesTab" class="tab-content">
+                <div class="settings-section">
+                    <h4 class="section-title">Chat Preferences</h4>
+                    
+                    <div class="form-group">
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <label>Sound Notifications</label>
+                                <span class="preference-desc">Play sound when receiving messages</span>
+                            </div>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="soundNotifications" checked>
+                                <label for="soundNotifications" class="toggle-label"></label>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>Account Information</label>
-                    <div class="readonly-info">
-                        <span>User ID:</span>
-                        <span id="showUserId">#000000</span>
+                    
+                    <div class="form-group">
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <label>Desktop Notifications</label>
+                                <span class="preference-desc">Show desktop notifications for new messages</span>
+                            </div>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="desktopNotifications">
+                                <label for="desktopNotifications" class="toggle-label"></label>
+                            </div>
+                        </div>
                     </div>
-                    <div class="readonly-info">
-                        <span>LY Code:</span>
-                        <span id="showLyCode">LY000000</span>
+                    
+                    <div class="form-group">
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <label>Auto-scroll to New Messages</label>
+                                <span class="preference-desc">Automatically scroll to latest message</span>
+                            </div>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="autoScroll" checked>
+                                <label for="autoScroll" class="toggle-label"></label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="preference-item">
+                            <div class="preference-info">
+                                <label>Show Typing Indicators</label>
+                                <span class="preference-desc">Show when others are typing</span>
+                            </div>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="showTyping" checked>
+                                <label for="showTyping" class="toggle-label"></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="messageFont">Message Font Size</label>
+                        <div class="range-input-wrapper">
+                            <input type="range" id="messageFont" class="range-input" min="12" max="20" value="14">
+                            <div class="range-labels">
+                                <span>12px</span>
+                                <span id="currentFontSize">14px</span>
+                                <span>20px</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Theme (Coming Soon)</label>
+                        <div class="theme-selector">
+                            <div class="theme-option active">
+                                <div class="theme-preview dark"></div>
+                                <span>Dark</span>
+                            </div>
+                            <div class="theme-option disabled">
+                                <div class="theme-preview light"></div>
+                                <span>Light</span>
+                                <div class="coming-soon">Soon</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" onclick="closeSettings()">Cancel</button>
-                    <button type="button" class="btn-primary" onclick="saveNewSettings()">Save Changes</button>
+            </div>
+
+            <!-- Account Tab -->
+            <div id="accountTab" class="tab-content">
+                <div class="settings-section">
+                    <h4 class="section-title">Account Information</h4>
+                    
+                    <div class="account-info-grid">
+                        <div class="info-card">
+                            <div class="info-label">User ID</div>
+                            <div class="info-value" id="showUserId">#000000</div>
+                            <button class="copy-btn" onclick="app.copyToClipboard(document.getElementById('showUserId').textContent)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-label">LY Code</div>
+                            <div class="info-value" id="showLyCode">LY000000</div>
+                            <button class="copy-btn" onclick="app.copyToClipboard(document.getElementById('showLyCode').textContent)">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-label">Username</div>
+                            <div class="info-value" id="showUsername">username</div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-label">Email</div>
+                            <div class="info-value" id="showEmail">email@example.com</div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-label">Joined</div>
+                            <div class="info-value" id="showJoinDate">Today</div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-label">Messages Sent</div>
+                            <div class="info-value" id="showMessageCount">0</div>
+                        </div>
+                    </div>
+
+                    <div class="danger-zone">
+                        <h4 class="section-title danger">Danger Zone</h4>
+                        <div class="danger-item">
+                            <div class="danger-info">
+                                <strong>Sign Out</strong>
+                                <p>Sign out from this device</p>
+                            </div>
+                            <button class="btn-danger" onclick="app.handleLogout()">Sign Out</button>
+                        </div>
+                    </div>
                 </div>
-            </form>
+            </div>
+
+            <!-- About Tab -->
+            <div id="aboutTab" class="tab-content">
+                <div class="settings-section">
+                    <div class="about-header">
+                        <div class="app-logo">
+                            <div class="logo-icon">L</div>
+                        </div>
+                        <div class="app-info">
+                            <h3>LinkLy Messenger</h3>
+                            <p class="version">Version 2.0.0</p>
+                            <p class="description">Modern real-time messaging platform</p>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-list">
+                        <h4 class="section-title">Features</h4>
+                        <div class="feature-grid">
+                            <div class="feature-item">
+                                <div class="feature-icon">💬</div>
+                                <div class="feature-text">
+                                    <strong>Real-time Messaging</strong>
+                                    <span>Instant message delivery</span>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">👥</div>
+                                <div class="feature-text">
+                                    <strong>User Profiles</strong>
+                                    <span>Customizable profiles</span>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">🔒</div>
+                                <div class="feature-text">
+                                    <strong>Secure</strong>
+                                    <span>Encrypted connections</span>
+                                </div>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">📱</div>
+                                <div class="feature-text">
+                                    <strong>Responsive</strong>
+                                    <span>Works on all devices</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-number" id="totalUsers">0</div>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="totalMessages">0</div>
+                            <div class="stat-label">Messages Sent</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="uptime">0d</div>
+                            <div class="stat-label">Uptime</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" id="cancelSettings">Cancel</button>
+                <button type="button" class="btn-primary" id="saveSettings">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17,21 17,13 7,13 7,21"></polyline>
+                        <polyline points="7,3 7,8 15,8"></polyline>
+                    </svg>
+                    Save Changes
+                </button>
+            </div>
         </div>
     </div>
     

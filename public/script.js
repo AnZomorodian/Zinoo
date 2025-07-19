@@ -76,7 +76,55 @@ class LinkLyApp {
         document.getElementById('settingsBtn')?.addEventListener('click', () => this.openSettings());
         document.getElementById('logoutBtn')?.addEventListener('click', () => this.handleLogout());
         document.getElementById('closeSettings')?.addEventListener('click', () => this.closeSettings());
+        document.getElementById('cancelSettings')?.addEventListener('click', () => this.closeSettings());
+        document.getElementById('saveSettings')?.addEventListener('click', () => this.saveNewSettings());
         this.overlay?.addEventListener('click', () => this.closeSettings());
+        
+        // Settings tab functionality
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.tab-button')) {
+                this.switchTab(e.target.dataset.tab);
+            }
+            if (e.target.matches('.color-preset')) {
+                document.getElementById('newAvatarColor').value = e.target.dataset.color;
+                this.updateColorPreview();
+                this.updateAvatarPreview();
+            }
+        });
+        
+        // Real-time updates for settings
+        document.getElementById('newDisplayName')?.addEventListener('input', (e) => {
+            this.updateCounter('displayNameCounter', e.target.value.length);
+            this.updateAvatarPreview();
+        });
+        
+        document.getElementById('newBio')?.addEventListener('input', (e) => {
+            this.updateCounter('bioCounter', e.target.value.length);
+        });
+        
+        document.getElementById('newAvatarColor')?.addEventListener('input', () => {
+            this.updateColorPreview();
+            this.updateAvatarPreview();
+        });
+        
+        document.getElementById('messageFont')?.addEventListener('input', (e) => {
+            document.getElementById('currentFontSize').textContent = e.target.value + 'px';
+        });
+        
+        // Enhanced message input features
+        document.getElementById('emojiBtn')?.addEventListener('click', () => {
+            this.toggleEmojiPicker();
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.emoji-option')) {
+                this.insertEmoji(e.target.textContent);
+            }
+            if (!e.target.closest('.message-input-container')) {
+                this.hideEmojiPicker();
+            }
+        });
+
         
         // Password toggle functionality
         document.querySelectorAll('.password-toggle').forEach(toggle => {
@@ -151,6 +199,8 @@ class LinkLyApp {
         this.socket.on('new_message', (message) => {
             this.displayMessage(message);
             this.messageCount++;
+            this.playNotificationSound();
+            this.showDesktopNotification(message);
         });
         
         this.socket.on('users_update', (users) => {
@@ -168,9 +218,14 @@ class LinkLyApp {
         });
         
         this.socket.on('user_typing', (data) => {
-            if (data.isTyping) {
-                this.typingIndicator.textContent = `${data.username} is typing...`;
-                this.typingIndicator.classList.remove('hidden');
+            const preferences = JSON.parse(localStorage.getItem('linkly_preferences') || '{}');
+            if (preferences.showTyping !== false) {
+                if (data.isTyping) {
+                    this.typingIndicator.textContent = `${data.username} is typing...`;
+                    this.typingIndicator.classList.remove('hidden');
+                } else {
+                    this.typingIndicator.classList.add('hidden');
+                }
             } else {
                 this.typingIndicator.classList.add('hidden');
             }
@@ -542,7 +597,7 @@ class LinkLyApp {
         this.userSearchInput.value = '';
     }
     
-    // Settings Methods
+    // Enhanced Settings Methods
     openSettings() {
         if (!this.currentUser) {
             this.showSystemMessage('Please login first', 'error');
@@ -555,6 +610,16 @@ class LinkLyApp {
         document.getElementById('newAvatarColor').value = this.currentUser.avatarColor || '#667eea';
         document.getElementById('showUserId').textContent = this.currentUser.userId || '#000000';
         document.getElementById('showLyCode').textContent = this.currentUser.lyCode || 'LY000000';
+        document.getElementById('showUsername').textContent = this.currentUser.username || 'N/A';
+        document.getElementById('showEmail').textContent = this.currentUser.email || 'N/A';
+        
+        // Update character counters
+        this.updateCounter('displayNameCounter', document.getElementById('newDisplayName').value.length);
+        this.updateCounter('bioCounter', document.getElementById('newBio').value.length);
+        
+        // Update color preview and avatar preview
+        this.updateColorPreview();
+        this.updateAvatarPreview();
         
         // Set status
         this.selectedStatus = this.currentUser.status || 'online';
@@ -562,8 +627,17 @@ class LinkLyApp {
             option.classList.toggle('active', option.dataset.status === this.selectedStatus);
         });
         
+        // Load preferences from localStorage
+        this.loadPreferences();
+        
+        // Load app stats
+        this.loadAppStats();
+        
         this.settingsModal?.classList.add('active');
         this.overlay?.classList.remove('hidden');
+        
+        // Set first tab as active
+        this.switchTab('profile');
     }
     
     closeSettings() {
@@ -576,6 +650,10 @@ class LinkLyApp {
         const bio = document.getElementById('newBio').value.trim();
         const avatarColor = document.getElementById('newAvatarColor').value;
         
+        // Save preferences
+        this.savePreferences();
+        
+        // Update profile
         this.socket.emit('update_profile', {
             displayName: displayName || undefined,
             bio: bio || undefined,
@@ -583,6 +661,160 @@ class LinkLyApp {
             status: this.selectedStatus,
             profilePicture: 'default'
         });
+        
+        this.showSystemMessage('Settings saved successfully!', 'info');
+        setTimeout(() => {
+            this.closeSettings();
+        }, 1000);
+    }
+    
+    switchTab(tabName) {
+        // Remove active class from all tabs and content
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        // Add active class to selected tab and content
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        document.getElementById(`${tabName}Tab`).classList.add('active');
+    }
+    
+    updateCounter(counterId, length) {
+        const counter = document.getElementById(counterId);
+        if (counter) {
+            counter.textContent = length;
+        }
+    }
+    
+    updateColorPreview() {
+        const colorInput = document.getElementById('newAvatarColor');
+        const colorPreview = document.getElementById('colorPreview');
+        if (colorInput && colorPreview) {
+            colorPreview.style.background = colorInput.value;
+        }
+    }
+    
+    updateAvatarPreview() {
+        const displayName = document.getElementById('newDisplayName').value;
+        const avatarColor = document.getElementById('newAvatarColor').value;
+        const avatarPreview = document.getElementById('avatarPreview');
+        
+        if (avatarPreview) {
+            const initial = (displayName || this.currentUser?.username || 'U').charAt(0).toUpperCase();
+            avatarPreview.textContent = initial;
+            avatarPreview.style.background = avatarColor;
+        }
+    }
+    
+    loadPreferences() {
+        const preferences = JSON.parse(localStorage.getItem('linkly_preferences') || '{}');
+        
+        document.getElementById('soundNotifications').checked = preferences.soundNotifications !== false;
+        document.getElementById('desktopNotifications').checked = preferences.desktopNotifications === true;
+        document.getElementById('autoScroll').checked = preferences.autoScroll !== false;
+        document.getElementById('showTyping').checked = preferences.showTyping !== false;
+        document.getElementById('messageFont').value = preferences.messageFontSize || 14;
+        document.getElementById('currentFontSize').textContent = (preferences.messageFontSize || 14) + 'px';
+        
+        // Apply font size immediately
+        document.documentElement.style.setProperty('--message-font-size', (preferences.messageFontSize || 14) + 'px');
+    }
+    
+    savePreferences() {
+        const preferences = {
+            soundNotifications: document.getElementById('soundNotifications').checked,
+            desktopNotifications: document.getElementById('desktopNotifications').checked,
+            autoScroll: document.getElementById('autoScroll').checked,
+            showTyping: document.getElementById('showTyping').checked,
+            messageFontSize: parseInt(document.getElementById('messageFont').value)
+        };
+        
+        localStorage.setItem('linkly_preferences', JSON.stringify(preferences));
+        
+        // Apply font size immediately
+        document.documentElement.style.setProperty('--message-font-size', preferences.messageFontSize + 'px');
+    }
+    
+    loadAppStats() {
+        // Request stats from server
+        fetch('/api/health')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('totalMessages').textContent = data.totalMessages || 0;
+                document.getElementById('totalUsers').textContent = this.userCount?.textContent || 0;
+                
+                // Calculate uptime (mock for now)
+                const uptime = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
+                document.getElementById('uptime').textContent = uptime + 'd';
+            })
+            .catch(error => {
+                console.log('Could not load app stats');
+            });
+    }
+    
+    copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            this.showSystemMessage('Copied to clipboard!', 'info');
+        }).catch(() => {
+            this.showSystemMessage('Failed to copy to clipboard', 'error');
+        });
+    }
+    
+    // Enhanced messaging features
+    playNotificationSound() {
+        const preferences = JSON.parse(localStorage.getItem('linkly_preferences') || '{}');
+        if (preferences.soundNotifications !== false) {
+            // Create a subtle notification sound using Web Audio API
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            } catch (error) {
+                console.log('Could not play notification sound');
+            }
+        }
+    }
+    
+    showDesktopNotification(message) {
+        const preferences = JSON.parse(localStorage.getItem('linkly_preferences') || '{}');
+        if (preferences.desktopNotifications === true && 'Notification' in window) {
+            if (Notification.permission === 'granted') {
+                new Notification(`${message.username}`, {
+                    body: message.message,
+                    icon: '/logo.png',
+                    tag: 'linkly-message'
+                });
+            } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        this.showDesktopNotification(message);
+                    }
+                });
+            }
+        }
+    }
+    
+    scrollToBottom() {
+        if (this.messagesContainer) {
+            const preferences = JSON.parse(localStorage.getItem('linkly_preferences') || '{}');
+            if (preferences.autoScroll !== false) {
+                this.messagesContainer.scrollTo({
+                    top: this.messagesContainer.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        }
     }
     
     handleLogout() {
@@ -648,6 +880,30 @@ class LinkLyApp {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+    
+    // Enhanced UI Methods
+    toggleEmojiPicker() {
+        const emojiPicker = document.getElementById('emojiPicker');
+        emojiPicker?.classList.toggle('hidden');
+    }
+    
+    hideEmojiPicker() {
+        const emojiPicker = document.getElementById('emojiPicker');
+        emojiPicker?.classList.add('hidden');
+    }
+    
+    insertEmoji(emoji) {
+        const messageInput = this.messageInput;
+        if (messageInput) {
+            const start = messageInput.selectionStart;
+            const end = messageInput.selectionEnd;
+            const value = messageInput.value;
+            messageInput.value = value.substring(0, start) + emoji + value.substring(end);
+            messageInput.selectionStart = messageInput.selectionEnd = start + emoji.length;
+            messageInput.focus();
+            this.hideEmojiPicker();
+        }
     }
 }
 

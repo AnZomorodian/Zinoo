@@ -59,17 +59,17 @@ io.on('connection', (socket) => {
   // Handle user authentication
   socket.on('authenticate', async (authData) => {
     try {
-      if (!authData || !authData.email || !authData.password) {
-        socket.emit('auth_error', 'Email and password are required');
+      if (!authData || !authData.emailOrUsername || !authData.password) {
+        socket.emit('auth_error', 'Email/username and password are required');
         return;
       }
       
-      const sanitizedEmail = authData.email.trim().toLowerCase();
+      const sanitizedEmailOrUsername = authData.emailOrUsername.trim().toLowerCase();
       
       // Authenticate user
-      const user = await storage.authenticateUser(sanitizedEmail, authData.password);
+      const user = await storage.authenticateUser(sanitizedEmailOrUsername, authData.password);
       if (!user) {
-        socket.emit('auth_error', 'Invalid email or password');
+        socket.emit('auth_error', 'Invalid email/username or password');
         return;
       }
       
@@ -207,6 +207,15 @@ io.on('connection', (socket) => {
         timestamp: savedMessage.timestamp.toISOString(),
         userId: user.id
       };
+
+      // Add reply information if present
+      if (data.replyTo) {
+        message.replyTo = {
+          id: data.replyTo.id,
+          username: data.replyTo.username,
+          message: data.replyTo.message
+        };
+      }
 
       // Broadcast message to all users
       io.emit('new_message', message);

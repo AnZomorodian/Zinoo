@@ -115,11 +115,11 @@ function switchToSignIn() {
 function handleSignIn(e) {
     e.preventDefault();
     
-    const email = document.getElementById('signInEmail').value.trim();
+    const emailOrUsername = document.getElementById('signInEmail').value.trim();
     const password = document.getElementById('signInPassword').value;
     
-    if (!email || !password) {
-        showAuthError('Email and password are required');
+    if (!emailOrUsername || !password) {
+        showAuthError('Email/username and password are required');
         return;
     }
     
@@ -135,7 +135,7 @@ function handleSignIn(e) {
     btnLoading.classList.remove('hidden');
     
     // Send authentication request
-    socket.emit('authenticate', { email, password });
+    socket.emit('authenticate', { emailOrUsername, password });
 }
 
 function handleSignUp(e) {
@@ -219,14 +219,60 @@ function sendMessage() {
     const message = messageInput.value.trim();
     if (!message) return;
     
-    socket.emit('send_message', { message });
+    const messageData = { message };
+    
+    // Add reply information if replying
+    if (replyToMessage) {
+        messageData.replyTo = replyToMessage;
+    }
+    
+    socket.emit('send_message', messageData);
     messageInput.value = '';
+    
+    // Clear reply state
+    clearReply();
     
     // Stop typing indicator
     if (isTyping) {
         isTyping = false;
         socket.emit('typing', false);
         clearTimeout(typingTimeout);
+    }
+}
+
+function setReplyTo(messageId, username, message) {
+    replyToMessage = { id: messageId, username, message };
+    showReplyIndicator(username, message);
+    messageInput.focus();
+}
+
+function showReplyIndicator(username, message) {
+    const inputContainer = document.querySelector('.message-input-container');
+    
+    // Remove existing reply indicator
+    const existingReply = inputContainer.querySelector('.reply-indicator');
+    if (existingReply) {
+        existingReply.remove();
+    }
+    
+    const replyIndicator = document.createElement('div');
+    replyIndicator.className = 'reply-indicator';
+    replyIndicator.innerHTML = `
+        <div class="reply-info">
+            <span class="reply-icon">↳</span>
+            <span class="reply-text">Replying to <strong>${escapeHtml(username)}</strong>: ${escapeHtml(message.substring(0, 50))}${message.length > 50 ? '...' : ''}</span>
+        </div>
+        <button class="reply-cancel" onclick="clearReply()">×</button>
+    `;
+    
+    inputContainer.insertBefore(replyIndicator, inputContainer.firstChild);
+}
+
+function clearReply() {
+    replyToMessage = null;
+    const replyIndicator = document.querySelector('.reply-indicator');
+    if (replyIndicator) {
+        replyIndicator.remove();
     }
 }
 
@@ -257,6 +303,8 @@ function showWelcomeMessage() {
     `;
 }
 
+let replyToMessage = null;
+
 function displayMessage(message, scroll = true) {
     // Remove welcome message if it exists
     const welcomeMsg = messagesContainer.querySelector('.welcome-message');
@@ -266,6 +314,7 @@ function displayMessage(message, scroll = true) {
     
     const messageEl = document.createElement('div');
     messageEl.className = 'message';
+    messageEl.dataset.messageId = message.id;
     
     const isOwn = currentUser && message.username === (currentUser.displayName || currentUser.username);
     if (isOwn) {
@@ -277,11 +326,32 @@ function displayMessage(message, scroll = true) {
         minute: '2-digit'
     });
     
+    // Check if this is a reply
+    let replyHtml = '';
+    if (message.replyTo) {
+        replyHtml = `
+            <div class="reply-to">
+                <span class="reply-icon">↳</span>
+                <span class="reply-username">${escapeHtml(message.replyTo.username)}</span>
+                <span class="reply-content">${escapeHtml(message.replyTo.message.substring(0, 50))}${message.replyTo.message.length > 50 ? '...' : ''}</span>
+            </div>
+        `;
+    }
+    
     messageEl.innerHTML = `
         <div class="message-header">
             <span class="username">${escapeHtml(message.username)}</span>
             <span class="timestamp">${time}</span>
+            <div class="message-actions">
+                <button class="reply-btn" onclick="setReplyTo('${message.id}', '${escapeHtml(message.username)}', '${escapeHtml(message.message)}')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 17l-5-5 5-5"></path>
+                        <path d="M20 18v-2a4 4 0 00-4-4H4"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
+        ${replyHtml}
         <div class="message-content">${escapeHtml(message.message)}</div>
     `;
     
@@ -495,10 +565,10 @@ function updateUsersList(users) {
 
 function getStatusEmoji(status) {
     switch(status) {
-        case 'away': return '🟡';
-        case 'busy': return '🔴';
-        case 'invisible': return '⚫';
-        default: return '🟢';
+        case 'away': return '🌙';
+        case 'busy': return '⚠️';
+        case 'invisible': return '👻';
+        default: return '✅';
     }
 }
 

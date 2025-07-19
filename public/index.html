@@ -14,7 +14,6 @@
             <div class="auth-left">
                 <div class="brand-section">
                     <div class="brand-logo">
-                        <div class="logo-icon">🔗</div>
                         <h1>Linkly</h1>
                     </div>
                     <p class="brand-tagline">Connect with your team instantly</p>
@@ -46,8 +45,8 @@
                         
                         <form id="loginForm" class="auth-form">
                             <div class="form-group">
-                                <label for="signInEmail">Email</label>
-                                <input type="email" id="signInEmail" placeholder="Enter your email" required>
+                                <label for="signInEmail">Email or Username</label>
+                                <input type="text" id="signInEmail" placeholder="Enter your email or username" required>
                             </div>
                             
                             <div class="form-group">
@@ -219,11 +218,11 @@
                             
                             <div class="form-group">
                                 <label for="settingsStatus">Status</label>
-                                <select id="settingsStatus">
-                                    <option value="online">🟢 Online</option>
-                                    <option value="away">🟡 Away</option>
-                                    <option value="busy">🔴 Busy</option>
-                                    <option value="invisible">⚫ Invisible</option>
+                                <select id="settingsStatus" class="status-select">
+                                    <option value="online">✅ Online</option>
+                                    <option value="away">🌙 Away</option>
+                                    <option value="busy">⚠️ Busy</option>
+                                    <option value="invisible">👻 Invisible</option>
                                 </select>
                             </div>
                             

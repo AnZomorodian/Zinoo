@@ -28,6 +28,16 @@ Migrating project from Replit Agent to standard Replit environment for improved 
 - Implemented separate sign up and sign in functionality
 - Created modern Linkly-branded login page with animations
 - Enhanced security with proper authentication flow
+- Major enhancements (July 19, 2025):
+  - Login now supports both email AND username
+  - Removed 🔗 icon from branding for cleaner look
+  - Enhanced duplicate validation with specific error messages
+  - Restyled status indicators with modern emojis (✅🌙⚠️👻)
+  - Improved profile settings with better styling
+  - Added comprehensive reply functionality to messages
+  - Messages now show reply buttons on hover
+  - Reply system shows original message context
+  - Enhanced message display with better visual hierarchy
 
 ## User Preferences
 - Prefers modern, feature-rich applications with comprehensive documentation

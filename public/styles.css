@@ -96,15 +96,15 @@ body {
 }
 
 .logo-image {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     object-fit: contain;
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
 .logo-image-small {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
     filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
 }
@@ -1329,8 +1329,8 @@ select:focus {
 
 /* Footer Styles */
 .chat-footer {
-    background: #f8fafc;
-    border-top: 1px solid #e5e7eb;
+    background: transparent;
+    border: none;
     padding: 0.75rem 2rem;
     position: sticky;
     bottom: 0;
@@ -1347,30 +1347,51 @@ select:focus {
 .footer-left {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
 }
 
 .footer-brand {
     font-weight: 700;
     color: #667eea;
-}
-
-.footer-version {
-    background: #667eea;
-    color: white;
-    padding: 0.125rem 0.5rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: 1rem;
 }
 
 .footer-center {
     color: #6b7280;
+    font-weight: 500;
+}
+
+.footer-team {
+    font-weight: 600;
+    color: #374151;
 }
 
 .footer-right {
-    color: #10b981;
-    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.social-links {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: #f3f4f6;
+    color: #6b7280;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.social-link:hover {
+    background: #e5e7eb;
+    color: #374151;
+    transform: translateY(-1px);
 }
 
 /* Settings Enhancements */

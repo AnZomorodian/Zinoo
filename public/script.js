@@ -129,6 +129,22 @@ function setupEventListeners() {
     // Initialize settings modal functionality
     initializeSettingsModal();
     
+    // Profile option selection
+    document.querySelectorAll('.profile-option').forEach(option => {
+        option.addEventListener('click', selectProfile);
+    });
+    
+    // Status option selection
+    document.querySelectorAll('.status-option').forEach(option => {
+        option.addEventListener('click', selectStatus);
+    });
+    
+    // Bio character counting
+    const bioTextarea = document.getElementById('settingsBio');
+    if (bioTextarea) {
+        bioTextarea.addEventListener('input', updateBioCharCount);
+    }
+    
     // Tab navigation
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', switchTab);
@@ -143,10 +159,7 @@ function setupEventListeners() {
         });
     }
     
-    // Settings tabs
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-    });
+    // Settings tabs - this is handled in initializeSettingsModal now
     
     // Logout
     if (logoutBtn) logoutBtn.addEventListener('click', () => {
@@ -535,11 +548,7 @@ function openSettings() {
         btn.addEventListener('click', () => switchSettingsTab(btn.dataset.tab));
     });
     
-    // Setup save button handler
-    const saveBtn = document.getElementById('saveSettingsBtn');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', handleSettingsUpdate);
-    }
+    // The save button is handled by the form submission
     
     settingsModal.classList.remove('hidden');
     overlay.classList.remove('hidden');
@@ -680,8 +689,31 @@ function switchSettingsTab(tabName) {
     document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
     
     // Add active class to selected tab and pane
-    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-    document.getElementById(`${tabName}Tab`).classList.add('active');
+    const selectedTabBtn = document.querySelector(`[data-tab="${tabName}"]`);
+    const selectedTabPane = document.getElementById(`${tabName}Tab`);
+    
+    if (selectedTabBtn) selectedTabBtn.classList.add('active');
+    if (selectedTabPane) selectedTabPane.classList.add('active');
+}
+
+function initializeSettingsModal() {
+    // This function initializes the settings modal functionality
+    // Profile option selection
+    document.querySelectorAll('.profile-option').forEach(option => {
+        option.addEventListener('click', selectProfile);
+    });
+    
+    // Status option selection  
+    document.querySelectorAll('.status-option').forEach(option => {
+        option.addEventListener('click', selectStatus);
+    });
+    
+    // Settings tab navigation
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchSettingsTab(btn.dataset.tab);
+        });
+    });
 }
 
 function addToProfileHistory(historyItem) {
@@ -746,14 +778,18 @@ function getProfilePicture(profileType) {
 
 function updateBioCharCount() {
     const bioTextarea = document.getElementById('settingsBio');
+    if (!bioTextarea || !bioCharCount) return;
+    
     const charCount = bioTextarea.value.length;
     bioCharCount.textContent = charCount;
     
     const charCounter = document.querySelector('.char-counter');
-    if (charCount < 30) {
-        charCounter.classList.add('error');
-    } else {
-        charCounter.classList.remove('error');
+    if (charCounter) {
+        if (charCount < 30 && charCount > 0) {
+            charCounter.classList.add('error');
+        } else {
+            charCounter.classList.remove('error');
+        }
     }
 }
 

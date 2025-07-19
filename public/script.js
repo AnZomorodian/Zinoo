@@ -532,46 +532,82 @@ function handleUserTyping(data) {
 }
 
 function openSettings() {
-    if (!currentUser) return;
-    
-    // Populate current settings
-    document.getElementById('settingsDisplayName').value = currentUser.displayName || '';
-    document.getElementById('settingsBio').value = currentUser.bio || '';
-    document.getElementById('settingsAvatarColor').value = currentUser.avatarColor || '#667eea';
-    document.getElementById('userIdDisplay').value = currentUser.userId || '#000000';
-    document.getElementById('lyCodeDisplay').value = currentUser.lyCode || 'LY000000';
-    
-    // Update bio character count
-    updateBioCharCount();
-    
-    // Set selected profile
-    selectedProfile = currentUser.profilePicture || 'default';
-    document.querySelectorAll('.profile-option').forEach(opt => opt.classList.remove('active'));
-    const profileElement = document.querySelector(`[data-profile="${selectedProfile}"]`);
-    if (profileElement) {
-        profileElement.classList.add('active');
+    if (!currentUser) {
+        console.log('No current user, cannot open settings');
+        showSystemMessage('Please login first', 'error');
+        return;
     }
     
-    // Set selected status
-    selectedStatus = currentUser.status || 'online';
-    document.querySelectorAll('.status-option').forEach(opt => opt.classList.remove('active'));
-    const statusElement = document.querySelector(`[data-status="${selectedStatus}"]`);
-    if (statusElement) {
-        statusElement.classList.add('active');
+    console.log('Opening settings for user:', currentUser);
+    
+    // Populate current settings with error handling
+    try {
+        const displayNameInput = document.getElementById('settingsDisplayName');
+        const bioTextarea = document.getElementById('settingsBio');
+        const avatarColorInput = document.getElementById('settingsAvatarColor');
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const lyCodeDisplay = document.getElementById('lyCodeDisplay');
+        
+        if (displayNameInput) {
+            displayNameInput.value = currentUser.displayName || currentUser.username || '';
+            console.log('Set display name:', displayNameInput.value);
+        }
+        if (bioTextarea) {
+            bioTextarea.value = currentUser.bio || '';
+            console.log('Set bio:', bioTextarea.value);
+        }
+        if (avatarColorInput) {
+            avatarColorInput.value = currentUser.avatarColor || '#667eea';
+            console.log('Set avatar color:', avatarColorInput.value);
+        }
+        if (userIdDisplay) {
+            userIdDisplay.value = currentUser.userId || '';
+            console.log('Set user ID:', userIdDisplay.value);
+        }
+        if (lyCodeDisplay) {
+            lyCodeDisplay.value = currentUser.lyCode || '';
+            console.log('Set LY code:', lyCodeDisplay.value);
+        }
+        
+        // Update bio character count
+        updateBioCharCount();
+        
+        // Set selected profile
+        selectedProfile = currentUser.profilePicture || 'default';
+        document.querySelectorAll('.profile-option').forEach(opt => {
+            const isActive = opt.dataset.profile === selectedProfile;
+            opt.classList.toggle('active', isActive);
+            console.log('Profile option', opt.dataset.profile, 'active:', isActive);
+        });
+        
+        // Set selected status
+        selectedStatus = currentUser.status || 'online';
+        document.querySelectorAll('.status-option').forEach(opt => {
+            const isActive = opt.dataset.status === selectedStatus;
+            opt.classList.toggle('active', isActive);
+            console.log('Status option', opt.dataset.status, 'active:', isActive);
+        });
+        
+        // Switch to profile tab by default
+        switchSettingsTab('profile');
+        
+        // Ensure form handler is attached
+        const settingsForm = document.getElementById('profileForm');
+        if (settingsForm) {
+            settingsForm.onsubmit = handleSettingsUpdate;
+            console.log('Attached form submit handler');
+        }
+        
+        // Show the modal
+        settingsModal.classList.remove('hidden');
+        overlay.classList.remove('hidden');
+        
+        console.log('Settings modal opened successfully');
+        
+    } catch (error) {
+        console.error('Error opening settings:', error);
+        showSystemMessage('Error opening settings: ' + error.message, 'error');
     }
-    
-    // Switch to profile tab by default
-    switchSettingsTab('profile');
-    
-    // Update settings tab buttons
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => switchSettingsTab(btn.dataset.tab));
-    });
-    
-    // The save button is handled by the form submission
-    
-    settingsModal.classList.remove('hidden');
-    overlay.classList.remove('hidden');
 }
 
 function closeSettings() {

@@ -1,277 +1,285 @@
-# Real-Time Messenger Application
+# LinkLy Messenger
 
-A secure, real-time messaging application built with Node.js, Socket.IO, and PostgreSQL. Features persistent message storage, user authentication, and a modern responsive interface.
+A real-time messaging application built with Node.js, Socket.IO, and PostgreSQL. Features include user authentication, live messaging, profile customization, and direct messaging capabilities.
+
+![LinkLy Logo](attached_assets/LinkLyLogo_1752945189863.png)
 
 ## Features
 
-- 🔐 **Secure Authentication**: Email and username-based registration with unique constraints
-- 💬 **Real-time Messaging**: Instant message delivery using Socket.IO
-- 📱 **Responsive Design**: Works perfectly on desktop and mobile devices
-- 🗄️ **Persistent Storage**: All messages and users stored in PostgreSQL database
-- ⚙️ **User Settings**: Customizable profile settings panel
-- 🛡️ **Security Features**: Input sanitization, CSP headers, rate limiting
-- 🌐 **Multiple Deployment Options**: Replit, local server, or custom hosting
+- 🔐 **Secure Authentication** - Custom authentication system with bcrypt encryption
+- 💬 **Real-time Messaging** - Instant messaging with Socket.IO WebSocket connections
+- 👤 **User Profiles** - Customizable avatars, display names, bios, and status indicators
+- 🔍 **User Search** - Find and connect with users using unique User IDs
+- 💼 **Direct Messaging** - Private conversations between users
+- 🎨 **Customizable UI** - Avatar colors, profile pictures, and status options
+- 📊 **Online Status** - Real-time connection status indicators
+
+## Technology Stack
+
+- **Backend**: Node.js + Express.js
+- **Real-time Communication**: Socket.IO
+- **Database**: PostgreSQL with Drizzle ORM
+- **Frontend**: Vanilla JavaScript, HTML5, CSS3
+- **Security**: Helmet.js, CORS, bcrypt password hashing
+- **Development**: TypeScript schemas, ESM modules
 
 ## Quick Start
 
-### Option 1: Run on Replit (Recommended)
-1. Fork or import this project to Replit
-2. Replit will automatically install dependencies and provision a PostgreSQL database
-3. Click "Run" to start the application
-4. Access your app at the provided URL
+### Prerequisites
 
-### Option 2: Run Locally
-1. **Prerequisites**:
-   - Node.js 18+ installed
-   - PostgreSQL database running
-   - Git installed
+- Node.js 18+ 
+- PostgreSQL database
+- npm or yarn package manager
 
-2. **Clone and Setup**:
+### Installation
+
+1. **Clone the repository**
    ```bash
    git clone <your-repo-url>
-   cd messenger-app
+   cd linkly-messenger
+   ```
+
+2. **Install dependencies**
+   ```bash
    npm install
    ```
 
-3. **Database Setup**:
+3. **Set up environment variables**
+   Create a `.env` file with your database configuration:
+   ```env
+   DATABASE_URL=postgresql://username:password@localhost:5432/linkly_db
+   PGDATABASE=linkly_db
+   PGHOST=localhost
+   PGPORT=5432
+   PGUSER=your_username
+   PGPASSWORD=your_password
+   NODE_ENV=development
+   ```
+
+4. **Set up the database**
    ```bash
-   # Create a PostgreSQL database
-   createdb messenger_app
-   
-   # Set environment variable
-   export DATABASE_URL="postgresql://username:password@localhost:5432/messenger_app"
-   
    # Push database schema
-   npm run db:push
+   npx drizzle-kit push
    ```
 
-4. **Start the Application**:
+5. **Start the development server**
    ```bash
-   npm start
+   node server.js
    ```
-   Access at http://localhost:5000
 
-### Option 3: Network/Server Deployment
+6. **Access the application**
+   Open your browser and navigate to `http://localhost:5000`
 
-#### Docker Deployment
-```bash
-# Build Docker image
-docker build -t messenger-app .
+## Local Development Setup
 
-# Run with environment variables
-docker run -p 5000:5000 \
-  -e DATABASE_URL="your_database_url" \
-  -e NODE_ENV="production" \
-  messenger-app
-```
+### For Replit Environment
 
-#### VPS/Cloud Server
-1. **Server Requirements**:
-   - Ubuntu 20.04+ / CentOS 8+
-   - 1GB+ RAM
-   - Node.js 18+
-   - PostgreSQL 13+
+If you're running this in Replit, the following environment variables are automatically configured:
+- `DATABASE_URL` - PostgreSQL connection string
+- `PGDATABASE`, `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD` - Database credentials
 
-2. **Installation**:
+### For Local Development
+
+1. **Install PostgreSQL locally**
    ```bash
-   # Update system
-   sudo apt update && sudo apt upgrade -y
-   
-   # Install Node.js
-   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-   sudo apt-get install -y nodejs
-   
-   # Install PostgreSQL
+   # Ubuntu/Debian
+   sudo apt update
    sudo apt install postgresql postgresql-contrib
    
-   # Create database user
-   sudo -u postgres createuser --interactive
-   sudo -u postgres createdb messenger_app
+   # macOS (with Homebrew)
+   brew install postgresql
+   brew services start postgresql
+   
+   # Windows
+   # Download from https://www.postgresql.org/download/windows/
    ```
 
-3. **Deploy Application**:
+2. **Create a database**
    ```bash
-   # Clone your repository
-   git clone <your-repo-url>
-   cd messenger-app
-   
-   # Install dependencies
-   npm install --production
-   
-   # Set environment variables
-   export DATABASE_URL="postgresql://user:password@localhost:5432/messenger_app"
-   export NODE_ENV="production"
-   export PORT="5000"
-   
-   # Push database schema
-   npm run db:push
-   
-   # Start with PM2 (process manager)
-   npm install -g pm2
-   pm2 start server.js --name "messenger-app"
-   pm2 startup
-   pm2 save
+   sudo -u postgres createdb linkly_db
+   sudo -u postgres createuser your_username
+   sudo -u postgres psql -c "ALTER USER your_username WITH ENCRYPTED PASSWORD 'your_password';"
+   sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE linkly_db TO your_username;"
    ```
 
-4. **Nginx Reverse Proxy** (Optional):
-   ```nginx
-   server {
-       listen 80;
-       server_name your-domain.com;
-       
-       location / {
-           proxy_pass http://localhost:5000;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto $scheme;
-           proxy_cache_bypass $http_upgrade;
-       }
-   }
+3. **Configure your .env file** (as shown above)
+
+4. **Run database migrations**
+   ```bash
+   npx drizzle-kit push
    ```
 
-## Environment Variables
-
-| Variable | Description | Required | Default |
-|----------|-------------|----------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | Yes | - |
-| `PORT` | Server port | No | 5000 |
-| `NODE_ENV` | Environment (development/production) | No | development |
-| `SESSION_SECRET` | Session encryption key | Yes (Production) | Auto-generated |
-
-## Available Scripts
+### Development Scripts
 
 ```bash
-# Start the application
-npm start
+# Start the server
+node server.js
 
 # Push database schema changes
-npm run db:push
+npx drizzle-kit push
 
-# Generate database migrations
-npm run db:generate
+# View database schema
+npx drizzle-kit introspect
 
-# View database in Drizzle Studio
-npm run db:studio
-
-# Development mode with auto-restart
-npm run dev
-
-# Run tests
-npm test
-
-# Check for security vulnerabilities
-npm audit
+# Check database status (via API)
+curl http://localhost:5000/api/health
 ```
 
 ## Project Structure
 
 ```
-messenger-app/
-├── public/                 # Static client files
-│   ├── index.html         # Main HTML page
-│   ├── script.js          # Client-side JavaScript
-│   └── styles.css         # CSS styles
-├── server/                # Server-side code
-│   ├── db.js             # Database connection
-│   └── storage.js        # Data access layer
-├── shared/               # Shared code
-│   ├── schema.js         # Database schema (JS)
-│   └── schema.ts         # Database schema (TS)
-├── scripts/              # Utility scripts
-│   └── setup-db.js       # Database setup
-├── server.js             # Main server file
-├── package.json          # Dependencies and scripts
-└── drizzle.config.ts     # Database configuration
+linkly-messenger/
+├── server.js                 # Main server file
+├── server/
+│   ├── db.js                # Database connection
+│   └── storage.js           # Database operations
+├── shared/
+│   └── schema.js            # Database schema (Drizzle)
+├── public/
+│   ├── index.html          # Main HTML file
+│   ├── script.js           # Frontend JavaScript
+│   └── styles.css          # CSS styles
+├── drizzle.config.ts       # Drizzle configuration
+└── README.md               # This file
 ```
+
+## Database Schema
+
+### Users Table
+- `id` - Primary key
+- `userId` - Unique user identifier (#123456 format)
+- `lyCode` - Unique LY code (LY + 6 chars)
+- `username` - Unique username
+- `email` - User email
+- `displayName` - Display name
+- `bio` - User biography
+- `status` - Online status (online, away, busy, invisible)
+- `avatarColor` - Avatar background color
+- `profilePicture` - Profile picture type
+- `isOnline` - Current online status
+- `lastSeen` - Last activity timestamp
+- `joinedAt` - Account creation date
+
+### Messages Table
+- `id` - Primary key
+- `userId` - Reference to users table
+- `message` - Message content
+- `timestamp` - Message timestamp
 
 ## API Endpoints
 
-### HTTP Endpoints
-- `GET /` - Serve main application
-- `GET /api/health` - Health check endpoint
+- `GET /` - Main application
+- `GET /api/health` - Health check and system status
 
-### Socket.IO Events
+## Socket.IO Events
 
-#### Client → Server
-- `join` - Join chat with username and email
-- `send_message` - Send a new message
-- `typing` - Indicate typing status
-- `update_profile` - Update user profile settings
+### Client → Server
+- `authenticate` - User login
+- `register` - User registration
+- `send_message` - Send a message
+- `update_profile` - Update user profile
+- `search_user` - Search for users
+- `typing` - Typing indicator
+- `get_users` - Request user list
 
-#### Server → Client
-- `message_history` - Send recent messages on join
-- `new_message` - Broadcast new message
-- `user_joined` - Notify when user joins
-- `user_left` - Notify when user leaves
-- `users_update` - Send updated user list
-- `user_typing` - Typing indicator
-- `error` - Error notifications
+### Server → Client
+- `auth_success` - Successful authentication
+- `auth_error` - Authentication error
+- `new_message` - New message received
+- `message_history` - Message history
+- `users_update` - Updated user list
+- `profile_updated` - Profile update confirmation
+- `user_joined` / `user_left` - User presence changes
+
+## Features in Detail
+
+### User Authentication
+- Secure password hashing with bcrypt
+- Email and username validation
+- Session management with Socket.IO
+
+### Profile Management
+- Display name customization
+- Bio with 30+ character minimum
+- Avatar color selection
+- Profile picture options
+- Status indicators (Online, Away, Busy, Invisible)
+
+### Messaging System
+- Real-time message delivery
+- Message history
+- Typing indicators
+- User presence status
+
+### User Search
+- Find users by unique User ID
+- Private messaging initiation
 
 ## Security Features
 
-- **Input Sanitization**: All user inputs are sanitized and validated
-- **Content Security Policy**: CSP headers prevent XSS attacks
-- **CORS Protection**: Configured for secure cross-origin requests
-- **Rate Limiting**: Prevents spam and abuse
-- **SQL Injection Prevention**: Using parameterized queries with Drizzle ORM
-- **Session Security**: Secure session management
-- **Message Length Limits**: Prevents oversized message attacks
+- Password hashing with bcrypt (12 rounds)
+- CORS protection
+- Helmet.js security headers
+- Input sanitization and validation
+- SQL injection prevention (Drizzle ORM)
 
-## Browser Support
+## Environment Variables
 
-- Chrome 80+
-- Firefox 75+
-- Safari 13+
-- Edge 80+
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes and test thoroughly
-4. Commit your changes: `git commit -am 'Add some feature'`
-5. Push to the branch: `git push origin feature-name`
-6. Submit a pull request
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `DATABASE_URL` | PostgreSQL connection string | Yes |
+| `PGDATABASE` | Database name | Yes |
+| `PGHOST` | Database host | Yes |
+| `PGPORT` | Database port | Yes |
+| `PGUSER` | Database username | Yes |
+| `PGPASSWORD` | Database password | Yes |
+| `NODE_ENV` | Environment (development/production) | No |
 
 ## Troubleshooting
 
 ### Common Issues
 
-**Server won't start**:
-- Check if `DATABASE_URL` is set correctly
-- Verify PostgreSQL is running
-- Check if port 5000 is available
+1. **Database Connection Failed**
+   - Check your PostgreSQL service is running
+   - Verify environment variables are correct
+   - Ensure database exists and user has permissions
 
-**Database connection errors**:
-- Verify database credentials
-- Check if database exists
-- Run `npm run db:push` to create tables
+2. **Profile Settings Not Working**
+   - Check browser console for JavaScript errors
+   - Verify user is logged in
+   - Check network connection to server
 
-**Socket.IO connection issues**:
-- Check firewall settings
-- Verify WebSocket support in your environment
-- Check CORS configuration for production deployments
+3. **Users Not Showing Online**
+   - Check Socket.IO connection status
+   - Verify server is broadcasting user updates
+   - Check browser network tab for WebSocket connections
 
-### Performance Optimization
+### Development Tips
 
-- Use Redis for session storage in production
-- Implement message pagination for large chat histories
-- Add CDN for static assets
-- Enable gzip compression
-- Use connection pooling for database
+- Use browser developer tools to debug frontend issues
+- Check server console for backend error messages
+- Monitor network tab for Socket.IO connection issues
+- Use `console.log` for debugging (already implemented)
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ## License
 
-MIT License - see LICENSE file for details
+This project is licensed under the ISC License.
 
 ## Support
 
-For support, please open an issue on the GitHub repository or contact the development team.
+For issues and questions:
+- Check the troubleshooting section above
+- Review browser console and server logs
+- Create an issue in the repository
 
 ---
 
-Built with ❤️ using Node.js, Socket.IO, and PostgreSQL
+Built with ❤️ by DeepInk Team

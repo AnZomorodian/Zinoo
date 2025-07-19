@@ -337,18 +337,24 @@ io.on('connection', (socket) => {
     try {
       const user = socketToUser.get(socket.id);
       if (user) {
-        // Update user offline status
-        await storage.updateUserOnlineStatus(user.id, false);
+        // Don't update user offline status immediately - keep them online for a short period
+        // This helps with page refreshes and quick reconnections
+        setTimeout(async () => {
+          // Check if user has reconnected in another socket
+          const isUserStillConnected = Array.from(socketToUser.values()).some(u => u.id === user.id);
+          if (!isUserStillConnected) {
+            // Update user offline status only if they haven't reconnected
+            await storage.updateUserOnlineStatus(user.id, false);
+            // Broadcast user left
+            io.emit('user_left', user.displayName || user.username);
+            // Send updated user list
+            await broadcastUserList();
+          }
+        }, 5000); // 5 second grace period for reconnection
         
-        // Clean up mappings
+        // Clean up mappings immediately
         socketToUser.delete(socket.id);
         userToSocket.delete(user.id);
-        
-        // Broadcast user left
-        socket.broadcast.emit('user_left', user.displayName || user.username);
-        
-        // Send updated user list
-        await broadcastUserList();
       }
     } catch (error) {
       console.error('Error handling disconnect:', error);
@@ -360,9 +366,24 @@ io.on('connection', (socket) => {
 // Helper function to broadcast user list
 async function broadcastUserList() {
   try {
-    const onlineUsers = Array.from(socketToUser.values())
-      .filter(user => user.status !== 'invisible') // Hide invisible users
-      .map(user => ({
+    // Get users from socket connections and recent database users
+    const socketUsers = Array.from(socketToUser.values())
+      .filter(user => user.status !== 'invisible')
+      .reduce((acc, user) => {
+        acc[user.id] = user;
+        return acc;
+      }, {});
+
+    // Also get recently active users from database (within last 30 seconds)
+    const recentUsers = await storage.getRecentlyActiveUsers(30);
+    
+    // Combine socket users with recently active users
+    const allOnlineUsers = [];
+    const processedUserIds = new Set();
+    
+    // Add socket-connected users first
+    for (const user of Object.values(socketUsers)) {
+      allOnlineUsers.push({
         id: user.id,
         username: user.username,
         displayName: user.displayName,
@@ -372,9 +393,29 @@ async function broadcastUserList() {
         profilePicture: user.profilePicture || 'default',
         userId: user.userId,
         isOnline: true
-      }));
-    io.emit('users_update', onlineUsers);
-    console.log(`Broadcasting ${onlineUsers.length} online users`);
+      });
+      processedUserIds.add(user.id);
+    }
+    
+    // Add recently active users who aren't already in the list
+    for (const user of recentUsers) {
+      if (!processedUserIds.has(user.id) && user.status !== 'invisible') {
+        allOnlineUsers.push({
+          id: user.id,
+          username: user.username,
+          displayName: user.displayName,
+          bio: user.bio,
+          status: user.status || 'online',
+          avatarColor: user.avatarColor,
+          profilePicture: user.profilePicture || 'default',
+          userId: user.userId,
+          isOnline: true
+        });
+      }
+    }
+    
+    io.emit('users_update', allOnlineUsers);
+    console.log(`Broadcasting ${allOnlineUsers.length} online users`);
   } catch (error) {
     console.error('Error broadcasting user list:', error);
   }

@@ -111,6 +111,26 @@ function setupEventListeners() {
     
     // Logout
     if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+    
+    // Password toggle functionality
+    document.querySelectorAll('.password-toggle').forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const inputId = this.dataset.input;
+            const input = document.getElementById(inputId);
+            const eyeIcon = this.querySelector('.eye-icon');
+            const eyeOffIcon = this.querySelector('.eye-off-icon');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeIcon.classList.add('hidden');
+                eyeOffIcon.classList.remove('hidden');
+            } else {
+                input.type = 'password';
+                eyeIcon.classList.remove('hidden');
+                eyeOffIcon.classList.add('hidden');
+            }
+        });
+    });
 }
 
 function setupSocketListeners() {

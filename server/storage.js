@@ -223,6 +223,26 @@ class DatabaseStorage {
     return result.length;
   }
 
+  async getRecentlyActiveUsers(seconds = 30) {
+    try {
+      const { gte } = require("drizzle-orm");
+      const cutoffTime = new Date(Date.now() - seconds * 1000);
+      
+      const recentUsers = await db.select()
+        .from(users)
+        .where(gte(users.lastSeen, cutoffTime))
+        .orderBy(desc(users.lastSeen));
+        
+      return recentUsers.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+    } catch (error) {
+      console.error('Error getting recently active users:', error);
+      return [];
+    }
+  }
+
   async addProfileHistory(userId, action, details) {
     // For now, return a simple history item
     // In the future, you could create a separate history table

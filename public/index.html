@@ -4,48 +4,109 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Real-Time Messenger</title>
+    <title>Linkly - Connect Instantly</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Login Screen -->
-    <div id="loginScreen" class="screen active">
-        <div class="login-container">
-            <div class="logo">
-                <div class="logo-icon">💬</div>
-                <h1>Real-Time Messenger</h1>
+    <!-- Authentication Screen -->
+    <div id="authScreen" class="auth-screen active">
+        <div class="auth-container">
+            <div class="auth-left">
+                <div class="brand-section">
+                    <div class="brand-logo">
+                        <div class="logo-icon">🔗</div>
+                        <h1>Linkly</h1>
+                    </div>
+                    <p class="brand-tagline">Connect with your team instantly</p>
+                    <div class="feature-highlights">
+                        <div class="feature-item">
+                            <span class="feature-icon">⚡</span>
+                            <span>Real-time messaging</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🔒</span>
+                            <span>Secure authentication</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">🌍</span>
+                            <span>Global connectivity</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <p class="tagline">Connect instantly with friends and colleagues</p>
             
-            <form id="loginForm" class="auth-form">
-                <div class="form-group">
-                    <label for="usernameInput">Username</label>
-                    <input type="text" id="usernameInput" placeholder="Choose a unique username" required maxlength="50">
-                    <div class="field-hint">This will be your display name in the chat</div>
+            <div class="auth-right">
+                <div class="auth-forms">
+                    <!-- Sign In Form -->
+                    <div id="signInForm" class="auth-form-container active">
+                        <div class="form-header">
+                            <h2>Welcome back</h2>
+                            <p>Sign in to your Linkly account</p>
+                        </div>
+                        
+                        <form id="loginForm" class="auth-form">
+                            <div class="form-group">
+                                <label for="signInEmail">Email</label>
+                                <input type="email" id="signInEmail" placeholder="Enter your email" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="signInPassword">Password</label>
+                                <input type="password" id="signInPassword" placeholder="Enter your password" required minlength="6">
+                            </div>
+                            
+                            <button type="submit" class="primary-btn">
+                                <span class="btn-text">Sign In</span>
+                                <span class="btn-loading hidden">Signing in...</span>
+                            </button>
+                        </form>
+                        
+                        <div class="form-switch">
+                            <p>Don't have an account? <button type="button" id="showSignUp" class="link-btn">Sign up</button></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Sign Up Form -->
+                    <div id="signUpForm" class="auth-form-container">
+                        <div class="form-header">
+                            <h2>Join Linkly</h2>
+                            <p>Create your account and start connecting</p>
+                        </div>
+                        
+                        <form id="registerForm" class="auth-form">
+                            <div class="form-group">
+                                <label for="signUpUsername">Username</label>
+                                <input type="text" id="signUpUsername" placeholder="Choose a unique username" required maxlength="50">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="signUpEmail">Email</label>
+                                <input type="email" id="signUpEmail" placeholder="Enter your email" required maxlength="255">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="signUpPassword">Password</label>
+                                <input type="password" id="signUpPassword" placeholder="Create a password (min 6 characters)" required minlength="6">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="signUpDisplayName">Display Name (Optional)</label>
+                                <input type="text" id="signUpDisplayName" placeholder="How others will see you" maxlength="100">
+                            </div>
+                            
+                            <button type="submit" class="primary-btn">
+                                <span class="btn-text">Create Account</span>
+                                <span class="btn-loading hidden">Creating account...</span>
+                            </button>
+                        </form>
+                        
+                        <div class="form-switch">
+                            <p>Already have an account? <button type="button" id="showSignIn" class="link-btn">Sign in</button></p>
+                        </div>
+                    </div>
+                    
+                    <div id="authError" class="error-message hidden"></div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="emailInput">Email</label>
-                    <input type="email" id="emailInput" placeholder="your.email@example.com" required maxlength="255">
-                    <div class="field-hint">Used for account recovery and notifications</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="displayNameInput">Display Name (Optional)</label>
-                    <input type="text" id="displayNameInput" placeholder="Your friendly name" maxlength="100">
-                    <div class="field-hint">How others will see you (defaults to username)</div>
-                </div>
-                
-                <button type="submit" class="primary-btn">
-                    <span class="btn-text">Join Chat</span>
-                    <span class="btn-loading hidden">Joining...</span>
-                </button>
-            </form>
-            
-            <div id="authError" class="error-message hidden"></div>
-            
-            <div class="auth-footer">
-                <p>By joining, you agree to our community guidelines</p>
             </div>
         </div>
     </div>
@@ -54,15 +115,19 @@
     <div id="chatContainer" class="chat-container hidden">
         <header class="chat-header">
             <div class="header-left">
-                <h1>💬 Real-Time Messenger</h1>
+                <div class="brand-mini">
+                    <span class="logo-mini">🔗</span>
+                    <h1>Linkly</h1>
+                </div>
                 <div class="connection-status">
                     <span id="connectionStatus" class="status-dot"></span>
                     <span id="statusText">Connecting...</span>
                 </div>
             </div>
             <div class="header-right">
+                <span id="currentUserName" class="current-user"></span>
                 <button id="settingsBtn" class="icon-btn" title="Settings">⚙️</button>
-                <button id="logoutBtn" class="icon-btn" title="Logout">🚪</button>
+                <button id="logoutBtn" class="icon-btn" title="Sign Out">↗️</button>
             </div>
         </header>
 
@@ -77,12 +142,12 @@
                 <div class="features-section">
                     <h3>Security Features</h3>
                     <ul class="features-list">
+                        <li>✅ Password protected</li>
                         <li>✅ Real-time messaging</li>
                         <li>✅ Input sanitization</li>
-                        <li>✅ Email authentication</li>
                         <li>✅ Unique constraints</li>
                         <li>✅ Persistent storage</li>
-                        <li>✅ CORS protection</li>
+                        <li>✅ Secure authentication</li>
                     </ul>
                 </div>
             </aside>
@@ -91,7 +156,11 @@
             <main class="chat-main">
                 <div id="messagesContainer" class="messages-container">
                     <div class="welcome-message">
-                        <p>Welcome to the chat! Start a conversation...</p>
+                        <div class="welcome-content">
+                            <span class="welcome-icon">💬</span>
+                            <h3>Welcome to Linkly!</h3>
+                            <p>Start a conversation and connect with your team</p>
+                        </div>
                     </div>
                 </div>
                 
@@ -103,7 +172,10 @@
                            placeholder="Type your message..." 
                            maxlength="500"
                            autocomplete="off">
-                    <button id="sendButton">Send</button>
+                    <button id="sendButton">
+                        <span>Send</span>
+                        <span class="send-icon">→</span>
+                    </button>
                 </div>
             </main>
         </div>
@@ -113,14 +185,14 @@
     <div id="settingsModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Settings</h2>
+                <h2>Profile Settings</h2>
                 <button class="close-btn" id="closeSettingsBtn">×</button>
             </div>
             <div class="modal-body">
                 <form id="settingsForm">
                     <div class="form-group">
                         <label for="settingsDisplayName">Display Name</label>
-                        <input type="text" id="settingsDisplayName" maxlength="100">
+                        <input type="text" id="settingsDisplayName" maxlength="100" placeholder="How others see you">
                     </div>
                     
                     <div class="form-group">

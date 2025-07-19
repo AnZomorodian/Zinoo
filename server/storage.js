@@ -1,6 +1,7 @@
 const { users, messages } = require("../shared/schema");
 const { db } = require("./db");
 const { eq, desc } = require("drizzle-orm");
+const bcrypt = require("bcrypt");
 
 // Interface definition (for documentation only)
 // IStorage interface defines the contract for storage implementations
@@ -8,17 +9,29 @@ const { eq, desc } = require("drizzle-orm");
 class DatabaseStorage {
   async getUser(id) {
     const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    if (!user) return undefined;
+    
+    // Return user without password
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
   async getUserByUsername(username) {
     const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
+    if (!user) return undefined;
+    
+    // Return user without password
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
   async getUserByEmail(email) {
     const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user || undefined;
+    if (!user) return undefined;
+    
+    // Return user without password
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
   async checkUserExists(username, email) {
@@ -37,15 +50,38 @@ class DatabaseStorage {
   }
 
   async createUser(insertUser) {
+    // Hash password before storing
+    const hashedPassword = await bcrypt.hash(insertUser.password, 12);
+    
     const [user] = await db
       .insert(users)
       .values({
         ...insertUser,
+        password: hashedPassword,
         displayName: insertUser.displayName || insertUser.username,
         avatarColor: insertUser.avatarColor || this.generateRandomColor()
       })
       .returning();
-    return user;
+    
+    // Return user without password
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
+
+  async authenticateUser(email, password) {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    if (!user) {
+      return null;
+    }
+    
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return null;
+    }
+    
+    // Return user without password
+    const { password: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
   async updateUserProfile(id, profileData) {

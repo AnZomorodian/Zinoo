@@ -2,13 +2,17 @@
 const socket = io();
 
 // DOM elements
-const loginScreen = document.getElementById('loginScreen');
+const authScreen = document.getElementById('authScreen');
 const chatContainer = document.getElementById('chatContainer');
+const signInForm = document.getElementById('signInForm');
+const signUpForm = document.getElementById('signUpForm');
 const loginForm = document.getElementById('loginForm');
-const usernameInput = document.getElementById('usernameInput');
-const emailInput = document.getElementById('emailInput');
-const displayNameInput = document.getElementById('displayNameInput');
+const registerForm = document.getElementById('registerForm');
 const authError = document.getElementById('authError');
+const showSignUp = document.getElementById('showSignUp');
+const showSignIn = document.getElementById('showSignIn');
+
+// Chat elements
 const messagesContainer = document.getElementById('messagesContainer');
 const messageInput = document.getElementById('messageInput');
 const sendButton = document.getElementById('sendButton');
@@ -17,6 +21,7 @@ const userCount = document.getElementById('userCount');
 const typingIndicator = document.getElementById('typingIndicator');
 const connectionStatus = document.getElementById('connectionStatus');
 const statusText = document.getElementById('statusText');
+const currentUserName = document.getElementById('currentUserName');
 const settingsBtn = document.getElementById('settingsBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const settingsModal = document.getElementById('settingsModal');
@@ -35,8 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
-    // Login form
-    loginForm.addEventListener('submit', handleLogin);
+    // Auth form switching
+    showSignUp.addEventListener('click', switchToSignUp);
+    showSignIn.addEventListener('click', switchToSignIn);
+    
+    // Auth forms
+    loginForm.addEventListener('submit', handleSignIn);
+    registerForm.addEventListener('submit', handleSignUp);
     
     // Message sending
     messageInput.addEventListener('keypress', handleMessageKeypress);
@@ -71,6 +81,10 @@ function setupSocketListeners() {
         updateConnectionStatus('error', 'Connection Error');
     });
     
+    // Auth events
+    socket.on('auth_success', handleAuthSuccess);
+    socket.on('auth_error', handleAuthError);
+    
     // Chat events
     socket.on('message_history', displayMessageHistory);
     socket.on('new_message', displayMessage);
@@ -79,18 +93,61 @@ function setupSocketListeners() {
     socket.on('users_update', updateUsersList);
     socket.on('user_typing', handleUserTyping);
     socket.on('profile_updated', handleProfileUpdated);
-    socket.on('error', displayError);
 }
 
-function handleLogin(e) {
+function switchToSignUp() {
+    signInForm.classList.remove('active');
+    signUpForm.classList.add('active');
+    hideAuthError();
+}
+
+function switchToSignIn() {
+    signUpForm.classList.remove('active');
+    signInForm.classList.add('active');
+    hideAuthError();
+}
+
+function handleSignIn(e) {
     e.preventDefault();
     
-    const username = usernameInput.value.trim();
-    const email = emailInput.value.trim();
-    const displayName = displayNameInput.value.trim();
+    const email = document.getElementById('signInEmail').value.trim();
+    const password = document.getElementById('signInPassword').value;
     
-    if (!username || !email) {
-        showAuthError('Username and email are required');
+    if (!email || !password) {
+        showAuthError('Email and password are required');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showAuthError('Password must be at least 6 characters long');
+        return;
+    }
+    
+    // Show loading state
+    const btnText = loginForm.querySelector('.btn-text');
+    const btnLoading = loginForm.querySelector('.btn-loading');
+    btnText.classList.add('hidden');
+    btnLoading.classList.remove('hidden');
+    
+    // Send authentication request
+    socket.emit('authenticate', { email, password });
+}
+
+function handleSignUp(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('signUpUsername').value.trim();
+    const email = document.getElementById('signUpEmail').value.trim();
+    const password = document.getElementById('signUpPassword').value;
+    const displayName = document.getElementById('signUpDisplayName').value.trim();
+    
+    if (!username || !email || !password) {
+        showAuthError('Username, email, and password are required');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showAuthError('Password must be at least 6 characters long');
         return;
     }
     
@@ -100,30 +157,37 @@ function handleLogin(e) {
     }
     
     // Show loading state
-    const btnText = document.querySelector('.btn-text');
-    const btnLoading = document.querySelector('.btn-loading');
+    const btnText = registerForm.querySelector('.btn-text');
+    const btnLoading = registerForm.querySelector('.btn-loading');
     btnText.classList.add('hidden');
     btnLoading.classList.remove('hidden');
     
-    // Send join request
-    socket.emit('join', {
+    // Send registration request
+    socket.emit('register', {
         username,
         email,
+        password,
         displayName: displayName || username
     });
-    
-    // Listen for join response
-    socket.once('user_joined', () => {
-        currentUser = { username, email, displayName: displayName || username };
-        showChatInterface();
-        hideAuthError();
-    });
-    
-    socket.once('error', (error) => {
-        showAuthError(error);
-        btnText.classList.remove('hidden');
-        btnLoading.classList.add('hidden');
-    });
+}
+
+function handleAuthSuccess(userData) {
+    currentUser = userData;
+    currentUserName.textContent = userData.displayName || userData.username;
+    showChatInterface();
+    hideAuthError();
+    resetAuthForms();
+}
+
+function handleAuthError(error) {
+    showAuthError(error);
+    resetAuthForms();
+}
+
+function resetAuthForms() {
+    // Reset loading states
+    document.querySelectorAll('.btn-text').forEach(el => el.classList.remove('hidden'));
+    document.querySelectorAll('.btn-loading').forEach(el => el.classList.add('hidden'));
 }
 
 function handleMessageKeypress(e) {
@@ -165,18 +229,40 @@ function displayMessageHistory(messages) {
     // Clear welcome message
     messagesContainer.innerHTML = '';
     
-    messages.forEach(message => {
-        displayMessage(message, false);
-    });
+    if (messages.length === 0) {
+        showWelcomeMessage();
+    } else {
+        messages.forEach(message => {
+            displayMessage(message, false);
+        });
+    }
     
     scrollToBottom();
 }
 
+function showWelcomeMessage() {
+    messagesContainer.innerHTML = `
+        <div class="welcome-message">
+            <div class="welcome-content">
+                <span class="welcome-icon">💬</span>
+                <h3>Welcome to Linkly!</h3>
+                <p>Start a conversation and connect with your team</p>
+            </div>
+        </div>
+    `;
+}
+
 function displayMessage(message, scroll = true) {
+    // Remove welcome message if it exists
+    const welcomeMsg = messagesContainer.querySelector('.welcome-message');
+    if (welcomeMsg) {
+        welcomeMsg.remove();
+    }
+    
     const messageEl = document.createElement('div');
     messageEl.className = 'message';
     
-    const isOwn = currentUser && message.username === currentUser.username;
+    const isOwn = currentUser && message.username === (currentUser.displayName || currentUser.username);
     if (isOwn) {
         messageEl.classList.add('own-message');
     }
@@ -202,7 +288,7 @@ function displayMessage(message, scroll = true) {
 }
 
 function handleUserJoined(username) {
-    if (username !== currentUser?.username) {
+    if (username !== (currentUser?.displayName || currentUser?.username)) {
         showSystemMessage(`${username} joined the chat`);
     }
 }
@@ -219,7 +305,7 @@ function updateUsersList(users) {
         const li = document.createElement('li');
         li.className = 'user-item';
         li.innerHTML = `
-            <div class="user-avatar" style="background-color: ${user.avatarColor || '#4F46E5'}">
+            <div class="user-avatar" style="background-color: ${user.avatarColor || '#667eea'}">
                 ${(user.displayName || user.username).charAt(0).toUpperCase()}
             </div>
             <div class="user-info">
@@ -247,7 +333,7 @@ function openSettings() {
     // Populate current settings
     document.getElementById('settingsDisplayName').value = currentUser.displayName || '';
     document.getElementById('settingsBio').value = currentUser.bio || '';
-    document.getElementById('settingsAvatarColor').value = currentUser.avatarColor || '#4F46E5';
+    document.getElementById('settingsAvatarColor').value = currentUser.avatarColor || '#667eea';
     
     settingsModal.classList.remove('hidden');
     overlay.classList.remove('hidden');
@@ -274,38 +360,40 @@ function handleSettingsUpdate(e) {
 
 function handleProfileUpdated(updatedProfile) {
     currentUser = { ...currentUser, ...updatedProfile };
+    currentUserName.textContent = currentUser.displayName || currentUser.username;
     closeSettings();
     showSystemMessage('Profile updated successfully!');
 }
 
 function handleLogout() {
-    if (confirm('Are you sure you want to logout?')) {
+    if (confirm('Are you sure you want to sign out?')) {
         socket.disconnect();
         currentUser = null;
-        showLoginScreen();
+        showAuthScreen();
     }
 }
 
 function showChatInterface() {
-    loginScreen.classList.remove('active');
-    loginScreen.classList.add('hidden');
+    authScreen.classList.remove('active');
+    authScreen.classList.add('hidden');
     chatContainer.classList.remove('hidden');
     messageInput.focus();
 }
 
-function showLoginScreen() {
+function showAuthScreen() {
     chatContainer.classList.add('hidden');
-    loginScreen.classList.remove('hidden');
-    loginScreen.classList.add('active');
+    authScreen.classList.remove('hidden');
+    authScreen.classList.add('active');
     
-    // Reset form
+    // Reset forms
     loginForm.reset();
+    registerForm.reset();
     hideAuthError();
+    resetAuthForms();
     
-    const btnText = document.querySelector('.btn-text');
-    const btnLoading = document.querySelector('.btn-loading');
-    btnText.classList.remove('hidden');
-    btnLoading.classList.add('hidden');
+    // Show sign in form by default
+    signUpForm.classList.remove('active');
+    signInForm.classList.add('active');
 }
 
 function showAuthError(message) {
@@ -315,10 +403,6 @@ function showAuthError(message) {
 
 function hideAuthError() {
     authError.classList.add('hidden');
-}
-
-function displayError(message) {
-    showSystemMessage(`Error: ${message}`, 'error');
 }
 
 function showSystemMessage(message, type = 'info') {
@@ -357,9 +441,10 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Auto-focus username input when page loads
+// Auto-focus first input when page loads
 window.addEventListener('load', () => {
-    if (usernameInput) {
-        usernameInput.focus();
+    const firstInput = document.querySelector('#signInForm input');
+    if (firstInput) {
+        firstInput.focus();
     }
 });

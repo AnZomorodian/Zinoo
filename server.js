@@ -56,49 +56,41 @@ app.use(express.static(path.join(__dirname, 'public')));
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
-  // Handle user joining
-  socket.on('join', async (userData) => {
+  // Handle user authentication
+  socket.on('authenticate', async (authData) => {
     try {
-      if (!userData || !userData.username || !userData.email) {
-        socket.emit('error', 'Username and email are required');
+      if (!authData || !authData.email || !authData.password) {
+        socket.emit('auth_error', 'Email and password are required');
         return;
       }
       
-      const sanitizedUsername = userData.username.trim().substring(0, 50);
-      const sanitizedEmail = userData.email.trim().toLowerCase();
-      const sanitizedDisplayName = userData.displayName ? userData.displayName.trim().substring(0, 100) : sanitizedUsername;
+      const sanitizedEmail = authData.email.trim().toLowerCase();
       
-      // Check if user already exists
-      const existingCheck = await storage.checkUserExists(sanitizedUsername, sanitizedEmail);
-      
-      if (existingCheck.usernameExists) {
-        socket.emit('error', 'Username already taken. Please choose a different one.');
-        return;
-      }
-      
-      if (existingCheck.emailExists) {
-        socket.emit('error', 'Email already registered. Please use a different email.');
-        return;
-      }
-      
-      // Find existing user by email or create new one
-      let user = await storage.getUserByEmail(sanitizedEmail);
+      // Authenticate user
+      const user = await storage.authenticateUser(sanitizedEmail, authData.password);
       if (!user) {
-        user = await storage.createUser({
-          username: sanitizedUsername,
-          email: sanitizedEmail,
-          displayName: sanitizedDisplayName,
-          isOnline: true
-        });
-      } else {
-        await storage.updateUserOnlineStatus(user.id, true);
+        socket.emit('auth_error', 'Invalid email or password');
+        return;
       }
+      
+      // Update user online status
+      await storage.updateUserOnlineStatus(user.id, true);
       
       // Store mappings
       socketToUser.set(socket.id, user);
       userToSocket.set(user.id, socket.id);
 
-      // Send recent messages to new user
+      // Send authentication success
+      socket.emit('auth_success', {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        displayName: user.displayName,
+        bio: user.bio,
+        avatarColor: user.avatarColor
+      });
+
+      // Send recent messages to authenticated user
       const recentMessages = await storage.getRecentMessages(50);
       const formattedMessages = recentMessages.map(msg => ({
         id: msg.id,
@@ -116,8 +108,75 @@ io.on('connection', (socket) => {
       // Send updated user list
       await broadcastUserList();
     } catch (error) {
-      console.error('Error in join handler:', error);
-      socket.emit('error', 'Failed to join chat');
+      console.error('Error in authenticate handler:', error);
+      socket.emit('auth_error', 'Authentication failed');
+    }
+  });
+
+  // Handle user registration
+  socket.on('register', async (userData) => {
+    try {
+      if (!userData || !userData.username || !userData.email || !userData.password) {
+        socket.emit('auth_error', 'Username, email, and password are required');
+        return;
+      }
+      
+      if (userData.password.length < 6) {
+        socket.emit('auth_error', 'Password must be at least 6 characters long');
+        return;
+      }
+      
+      const sanitizedUsername = userData.username.trim().substring(0, 50);
+      const sanitizedEmail = userData.email.trim().toLowerCase();
+      const sanitizedDisplayName = userData.displayName ? userData.displayName.trim().substring(0, 100) : sanitizedUsername;
+      
+      // Check if user already exists
+      const existingCheck = await storage.checkUserExists(sanitizedUsername, sanitizedEmail);
+      
+      if (existingCheck.usernameExists) {
+        socket.emit('auth_error', 'Username already taken. Please choose a different one.');
+        return;
+      }
+      
+      if (existingCheck.emailExists) {
+        socket.emit('auth_error', 'Email already registered. Please use a different email.');
+        return;
+      }
+      
+      // Create new user
+      const user = await storage.createUser({
+        username: sanitizedUsername,
+        email: sanitizedEmail,
+        password: userData.password,
+        displayName: sanitizedDisplayName,
+        isOnline: true
+      });
+
+      // Store mappings
+      socketToUser.set(socket.id, user);
+      userToSocket.set(user.id, socket.id);
+
+      // Send registration success
+      socket.emit('auth_success', {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        displayName: user.displayName,
+        bio: user.bio,
+        avatarColor: user.avatarColor
+      });
+
+      // Send welcome message
+      socket.emit('message_history', []);
+      
+      // Broadcast user joined
+      socket.broadcast.emit('user_joined', user.displayName || user.username);
+      
+      // Send updated user list
+      await broadcastUserList();
+    } catch (error) {
+      console.error('Error in register handler:', error);
+      socket.emit('auth_error', 'Registration failed');
     }
   });
 

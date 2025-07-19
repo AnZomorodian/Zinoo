@@ -6,6 +6,7 @@ export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   username: varchar('username', { length: 50 }).notNull().unique(),
   email: varchar('email', { length: 255 }).notNull().unique(),
+  password: varchar('password', { length: 255 }).notNull(),
   displayName: varchar('display_name', { length: 100 }),
   bio: text('bio'),
   avatarColor: varchar('avatar_color', { length: 7 }).default('#4F46E5'),

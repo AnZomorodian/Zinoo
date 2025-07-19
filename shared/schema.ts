@@ -13,6 +13,7 @@ export const users = pgTable('users', {
   bio: text('bio'),
   status: varchar('status', { length: 20 }).default('online'),
   avatarColor: varchar('avatar_color', { length: 7 }).default('#4F46E5'),
+  profilePicture: varchar('profile_picture', { length: 20 }).default('default'),
   isOnline: boolean('is_online').default(false),
   lastSeen: timestamp('last_seen').defaultNow(),
   joinedAt: timestamp('joined_at').defaultNow(),

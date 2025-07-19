@@ -28,7 +28,12 @@ const logoutBtn = document.getElementById('logoutBtn');
 const userSearchInput = document.getElementById('userSearchInput');
 const searchUserBtn = document.getElementById('searchUserBtn');
 const footerUserCount = document.getElementById('footerUserCount');
+const footerMessageCount = document.getElementById('footerMessageCount');
 const settingsModal = document.getElementById('settingsModal');
+const bioCharCount = document.getElementById('bioCharCount');
+let selectedProfile = 'default';
+let selectedStatus = 'online';
+let messageCount = 0;
 const settingsForm = document.getElementById('settingsForm');
 const overlay = document.getElementById('overlay');
 
@@ -94,6 +99,36 @@ function setupEventListeners() {
             handleUserSearch();
         }
     });
+    
+    // Bio character counter
+    const bioTextarea = document.getElementById('settingsBio');
+    if (bioTextarea) {
+        bioTextarea.addEventListener('input', updateBioCharCount);
+    }
+    
+    // Profile picture selector
+    document.querySelectorAll('.profile-option').forEach(option => {
+        option.addEventListener('click', selectProfile);
+    });
+    
+    // Status selector
+    document.querySelectorAll('.status-option').forEach(option => {
+        option.addEventListener('click', selectStatus);
+    });
+    
+    // Tab navigation
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', switchTab);
+    });
+    
+    // New DM button
+    const newDmBtn = document.getElementById('newDmBtn');
+    if (newDmBtn) {
+        newDmBtn.addEventListener('click', () => {
+            // Switch to search in header
+            userSearchInput.focus();
+        });
+    }
     
     // Settings tabs
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -448,13 +483,25 @@ function openSettings() {
     // Populate current settings
     document.getElementById('settingsDisplayName').value = currentUser.displayName || '';
     document.getElementById('settingsBio').value = currentUser.bio || '';
-    document.getElementById('settingsStatus').value = currentUser.status || 'online';
     document.getElementById('settingsAvatarColor').value = currentUser.avatarColor || '#667eea';
     document.getElementById('userIdDisplay').value = currentUser.userId || '#000000';
     document.getElementById('lyCodeDisplay').value = currentUser.lyCode || 'LY000000';
     
+    // Update bio character count
+    updateBioCharCount();
+    
+    // Set selected profile
+    selectedProfile = currentUser.profilePicture || 'default';
+    document.querySelectorAll('.profile-option').forEach(opt => opt.classList.remove('active'));
+    document.querySelector(`[data-profile="${selectedProfile}"]`).classList.add('active');
+    
+    // Set selected status
+    selectedStatus = currentUser.status || 'online';
+    document.querySelectorAll('.status-option').forEach(opt => opt.classList.remove('active'));
+    document.querySelector(`[data-status="${selectedStatus}"]`).classList.add('active');
+    
     // Switch to profile tab by default
-    switchTab('profile');
+    switchSettingsTab('profile');
     
     settingsModal.classList.remove('hidden');
     overlay.classList.remove('hidden');
@@ -473,12 +520,21 @@ function handleSettingsUpdate(e) {
     const status = document.getElementById('settingsStatus').value;
     const avatarColor = document.getElementById('settingsAvatarColor').value;
     
+    // Validate bio length
+    if (bio && bio.length < 30) {
+        showSystemMessage('Bio must be at least 30 characters long', 'error');
+        return;
+    }
+    
     socket.emit('update_profile', {
-        displayName,
-        bio,
-        status,
-        avatarColor
+        displayName: displayName || undefined,
+        bio: bio || undefined,
+        status: selectedStatus,
+        avatarColor,
+        profilePicture: selectedProfile
     });
+    
+    closeSettings();
 }
 
 function handleProfileUpdated(updatedProfile) {
@@ -570,7 +626,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function switchTab(tabName) {
+function switchSettingsTab(tabName) {
     // Remove active class from all tabs and panes
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
@@ -608,42 +664,73 @@ function updateUsersList(users) {
         const li = document.createElement('li');
         li.className = 'user-item';
         
-        // Get status emoji and color
-        const statusEmoji = getStatusEmoji(user.status);
-        const statusColor = getStatusColor(user.status);
+        // Get profile picture
+        const profilePic = getProfilePicture(user.profilePicture);
         
         li.innerHTML = `
             <div class="user-avatar" style="background-color: ${user.avatarColor || '#667eea'}">
-                ${(user.displayName || user.username).charAt(0).toUpperCase()}
+                ${profilePic}
             </div>
             <div class="user-info">
-                <div class="user-name">${escapeHtml(user.displayName || user.username)} <span style="color: ${statusColor}">${statusEmoji}</span></div>
+                <div class="user-name">${escapeHtml(user.displayName || user.username)}</div>
                 ${user.bio ? `<div class="user-bio">${escapeHtml(user.bio)}</div>` : ''}
                 ${user.userId ? `<div class="user-id">${escapeHtml(user.userId)}</div>` : ''}
             </div>
-            <div class="user-status ${user.isOnline ? 'online' : 'offline'}"></div>
+            <div class="status-indicator ${user.status || 'online'}"></div>
         `;
         usersList.appendChild(li);
     });
 }
 
-function getStatusEmoji(status) {
-    switch(status) {
-        case 'away': return '◐';
-        case 'busy': return '●';
-        case 'invisible': return '○';
-        default: return '●';
+function getProfilePicture(profileType) {
+    const profilePictures = {
+        'default': '👤',
+        'avatar1': '👨‍💼',
+        'avatar2': '👩‍💻',
+        'avatar3': '🎨',
+        'avatar4': '🚀',
+        'avatar5': '🎮',
+        'avatar6': '🌟',
+        'avatar7': '🎭'
+    };
+    return profilePictures[profileType] || profilePictures['default'];
+}
+
+function updateBioCharCount() {
+    const bioTextarea = document.getElementById('settingsBio');
+    const charCount = bioTextarea.value.length;
+    bioCharCount.textContent = charCount;
+    
+    const charCounter = document.querySelector('.char-counter');
+    if (charCount < 30) {
+        charCounter.classList.add('error');
+    } else {
+        charCounter.classList.remove('error');
     }
 }
 
-function getStatusColor(status) {
-    switch(status) {
-        case 'online': return '#10b981';
-        case 'away': return '#f59e0b';
-        case 'busy': return '#ef4444';
-        case 'invisible': return '#6b7280';
-        default: return '#10b981';
-    }
+function selectProfile(e) {
+    document.querySelectorAll('.profile-option').forEach(opt => opt.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    selectedProfile = e.currentTarget.dataset.profile;
+}
+
+function selectStatus(e) {
+    document.querySelectorAll('.status-option').forEach(opt => opt.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    selectedStatus = e.currentTarget.dataset.status;
+}
+
+function switchTab(e) {
+    const tabName = e.currentTarget.dataset.tab;
+    
+    // Update tab appearance
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    
+    // Update tab content
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    document.getElementById(tabName === 'public' ? 'publicChatTab' : 'dmChatTab').classList.add('active');
 }
 
 function handleUserSearch() {
@@ -666,11 +753,48 @@ function handleUserSearch() {
 socket.on('user_search_result', (result) => {
     if (result.found) {
         showSystemMessage(`Found user: ${result.user.displayName || result.user.username} (${result.user.userId})`, 'success');
-        // Could implement private chat here
+        // Switch to DM tab and start conversation
+        switchToDMTab();
+        startDirectMessage(result.user);
     } else {
         showSystemMessage('User not found or is invisible', 'error');
     }
 });
+
+function switchToDMTab() {
+    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelector('[data-tab="dms"]').classList.add('active');
+    
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    document.getElementById('dmChatTab').classList.add('active');
+}
+
+function startDirectMessage(user) {
+    // Add user to DM list if not already there
+    const dmList = document.getElementById('dmList');
+    const noDms = dmList.querySelector('.no-dms');
+    if (noDms) {
+        noDms.remove();
+    }
+    
+    // Create DM conversation item
+    const dmItem = document.createElement('div');
+    dmItem.className = 'dm-item';
+    dmItem.innerHTML = `
+        <div class="dm-avatar" style="background-color: ${user.avatarColor || '#667eea'}">
+            ${getProfilePicture(user.profilePicture)}
+        </div>
+        <div class="dm-info">
+            <div class="dm-name">${escapeHtml(user.displayName || user.username)}</div>
+            <div class="dm-id">${escapeHtml(user.userId)}</div>
+        </div>
+        <div class="status-indicator ${user.status || 'online'}"></div>
+    `;
+    
+    dmList.appendChild(dmItem);
+    
+    showSystemMessage(`Direct message started with ${user.displayName || user.username}`, 'success');
+}
 
 function showSystemMessage(message, type = 'info') {
     const systemMessage = document.createElement('div');

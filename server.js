@@ -95,7 +95,8 @@ io.on('connection', (socket) => {
         displayName: user.displayName,
         bio: user.bio,
         status: user.status || 'online',
-        avatarColor: user.avatarColor
+        avatarColor: user.avatarColor,
+        profilePicture: user.profilePicture || 'default'
       });
 
       // Send recent messages to authenticated user
@@ -179,7 +180,8 @@ io.on('connection', (socket) => {
         displayName: user.displayName,
         bio: user.bio,
         status: user.status || 'online',
-        avatarColor: user.avatarColor
+        avatarColor: user.avatarColor,
+        profilePicture: user.profilePicture || 'default'
       });
 
       // Send welcome message
@@ -277,18 +279,33 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Handle get users request
+  socket.on('get_users', async () => {
+    await broadcastUserList();
+  });
+
   // Handle profile updates
   socket.on('update_profile', async (profileData) => {
     try {
       const user = socketToUser.get(socket.id);
       if (!user) return;
 
-      const updatedUser = await storage.updateUserProfile(user.id, {
-        displayName: profileData.displayName?.trim().substring(0, 100),
-        bio: profileData.bio?.trim().substring(0, 200),
+      const updateData = {
+        displayName: profileData.displayName?.trim()?.substring(0, 100),
+        bio: profileData.bio?.trim()?.substring(0, 300),
         status: profileData.status || 'online',
-        avatarColor: profileData.avatarColor
+        avatarColor: profileData.avatarColor,
+        profilePicture: profileData.profilePicture || 'default'
+      };
+      
+      // Remove undefined values
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === undefined) {
+          delete updateData[key];
+        }
       });
+      
+      const updatedUser = await storage.updateUserProfile(user.id, updateData);
 
       // Update the stored user data
       socketToUser.set(socket.id, updatedUser);
@@ -303,6 +320,7 @@ io.on('connection', (socket) => {
         bio: updatedUser.bio,
         status: updatedUser.status,
         avatarColor: updatedUser.avatarColor,
+        profilePicture: updatedUser.profilePicture,
         historyItem: historyItem
       });
 
@@ -351,9 +369,12 @@ async function broadcastUserList() {
         bio: user.bio,
         status: user.status || 'online',
         avatarColor: user.avatarColor,
+        profilePicture: user.profilePicture || 'default',
+        userId: user.userId,
         isOnline: true
       }));
     io.emit('users_update', onlineUsers);
+    console.log(`Broadcasting ${onlineUsers.length} online users`);
   } catch (error) {
     console.error('Error broadcasting user list:', error);
   }

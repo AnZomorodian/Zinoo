@@ -171,6 +171,11 @@ function setupEventListeners() {
     
     // Socket events
     setupSocketListeners();
+    
+    // Ensure proper connection
+    if (socket.disconnected) {
+        socket.connect();
+    }
 }
 
 function setupSocketListeners() {
@@ -196,6 +201,12 @@ function setupSocketListeners() {
         localStorage.setItem('userData', JSON.stringify(userData));
         hideAuthError();
         showChat();
+        
+        // Request updated user list
+        // Request initial user list
+        setTimeout(() => {
+            socket.emit('get_users');
+        }, 500);
     });
     socket.on('auth_error', handleAuthError);
     
@@ -204,9 +215,18 @@ function setupSocketListeners() {
     socket.on('new_message', displayMessage);
     socket.on('user_joined', handleUserJoined);
     socket.on('user_left', handleUserLeft);
-    socket.on('users_update', updateUsersList);
+    socket.on('users_update', (users) => {
+        console.log('Received users update:', users);
+        updateUsersList(users);
+    });
     socket.on('user_typing', handleUserTyping);
     socket.on('profile_updated', handleProfileUpdated);
+    
+    // Add missing socket events
+    socket.on('error', (error) => {
+        console.error('Socket error:', error);
+        showSystemMessage('Connection error: ' + error, 'error');
+    });
 }
 
 function switchToSignUp() {
@@ -566,34 +586,54 @@ function handleSettingsUpdate(e) {
     const bio = document.getElementById('settingsBio').value.trim();
     const avatarColor = document.getElementById('settingsAvatarColor').value;
     
-    // Validate bio length
-    if (bio && bio.length < 30) {
+    // Validate bio length only if bio is provided
+    if (bio && bio.length > 0 && bio.length < 30) {
         showSystemMessage('Bio must be at least 30 characters long', 'error');
         return;
     }
     
+    console.log('Sending profile update:', {
+        displayName: displayName || undefined,
+        bio: bio || undefined,
+        status: selectedStatus || 'online',
+        avatarColor,
+        profilePicture: selectedProfile || 'default'
+    });
+    
     socket.emit('update_profile', {
         displayName: displayName || undefined,
         bio: bio || undefined,
-        status: selectedStatus,
+        status: selectedStatus || 'online',
         avatarColor,
-        profilePicture: selectedProfile
+        profilePicture: selectedProfile || 'default'
     });
     
-    closeSettings();
+    // Don't close settings immediately, wait for response
 }
 
 function handleProfileUpdated(updatedProfile) {
+    console.log('Profile updated received:', updatedProfile);
+    
+    // Update current user data
     currentUser = { ...currentUser, ...updatedProfile };
-    currentUserName.textContent = currentUser.displayName || currentUser.username;
+    
+    // Update UI elements
+    if (currentUserName) {
+        currentUserName.textContent = currentUser.displayName || currentUser.username;
+    }
+    
+    // Update localStorage
+    localStorage.setItem('userData', JSON.stringify(currentUser));
     
     // Add to history if provided
     if (updatedProfile.historyItem) {
         addToProfileHistory(updatedProfile.historyItem);
     }
     
+    // Show success message
+    showSystemMessage('Profile updated successfully!', 'success');
+    
     closeSettings();
-    // Don't show system message - history shows it instead
 }
 
 function handleLogout() {
@@ -736,9 +776,13 @@ function addToProfileHistory(historyItem) {
 }
 
 function updateUsersList(users) {
+    if (!usersList) return;
+    
     usersList.innerHTML = '';
-    userCount.textContent = users.length;
-    footerUserCount.textContent = users.length;
+    
+    // Update user count displays
+    if (userCount) userCount.textContent = users.length;
+    if (footerUserCount) footerUserCount.textContent = users.length;
     
     users.forEach(user => {
         const li = document.createElement('li');
@@ -760,6 +804,8 @@ function updateUsersList(users) {
         `;
         usersList.appendChild(li);
     });
+    
+    console.log('Updated user list with', users.length, 'users');
 }
 
 function getProfilePicture(profileType) {

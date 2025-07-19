@@ -1329,7 +1329,7 @@ select:focus {
 
 /* Footer Styles */
 .chat-footer {
-    background: transparent;
+    background: #f8fafc;
     border: none;
     padding: 0.75rem 2rem;
     position: sticky;

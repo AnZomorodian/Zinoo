@@ -223,6 +223,16 @@ class DatabaseStorage {
     return result.length;
   }
 
+  async addProfileHistory(userId, action, details) {
+    // For now, return a simple history item
+    // In the future, you could create a separate history table
+    return {
+      timestamp: new Date().toISOString(),
+      action,
+      details
+    };
+  }
+
   async addProfileHistory(userId, action, details = null) {
     const timestamp = new Date();
     // You could implement a separate history table here if needed

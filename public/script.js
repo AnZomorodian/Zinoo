@@ -276,6 +276,18 @@ function clearReply() {
     }
 }
 
+function clearReply() {
+    replyToMessage = null;
+    const replyIndicator = document.querySelector('.reply-indicator');
+    if (replyIndicator) {
+        replyIndicator.remove();
+    }
+}
+
+// Make functions globally accessible
+window.setReplyTo = setReplyTo;
+window.clearReply = clearReply;
+
 function displayMessageHistory(messages) {
     // Clear welcome message
     messagesContainer.innerHTML = '';
@@ -343,7 +355,7 @@ function displayMessage(message, scroll = true) {
             <span class="username">${escapeHtml(message.username)}</span>
             <span class="timestamp">${time}</span>
             <div class="message-actions">
-                <button class="reply-btn" onclick="setReplyTo('${message.id}', '${escapeHtml(message.username)}', '${escapeHtml(message.message)}')">
+                <button class="reply-btn" data-message-id="${message.id}" data-username="${escapeHtml(message.username)}" data-message="${escapeHtml(message.message)}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 17l-5-5 5-5"></path>
                         <path d="M20 18v-2a4 4 0 00-4-4H4"></path>
@@ -354,6 +366,17 @@ function displayMessage(message, scroll = true) {
         ${replyHtml}
         <div class="message-content">${escapeHtml(message.message)}</div>
     `;
+    
+    // Add click event listener for reply button
+    const replyBtn = messageEl.querySelector('.reply-btn');
+    if (replyBtn) {
+        replyBtn.addEventListener('click', function() {
+            const messageId = this.dataset.messageId;
+            const username = this.dataset.username;
+            const messageText = this.dataset.message;
+            setReplyTo(messageId, username, messageText);
+        });
+    }
     
     messagesContainer.appendChild(messageEl);
     

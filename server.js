@@ -52,9 +52,14 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Socket.IO connection handling
+// Socket.IO connection handling with better error handling
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
+  
+  // Add error handler for this socket
+  socket.on('error', (error) => {
+    console.error('Socket error for', socket.id, ':', error);
+  });
 
   // Handle user authentication
   socket.on('authenticate', async (authData) => {
@@ -133,6 +138,11 @@ io.on('connection', (socket) => {
       
       // Check if user already exists
       const existingCheck = await storage.checkUserExists(sanitizedUsername, sanitizedEmail);
+      
+      if (existingCheck.usernameExists && existingCheck.emailExists) {
+        socket.emit('auth_error', 'Both username and email are already taken. Please choose different ones.');
+        return;
+      }
       
       if (existingCheck.usernameExists) {
         socket.emit('auth_error', 'Username already taken. Please choose a different one.');
@@ -301,15 +311,17 @@ io.on('connection', (socket) => {
 // Helper function to broadcast user list
 async function broadcastUserList() {
   try {
-    const onlineUsers = Array.from(socketToUser.values()).map(user => ({
-      id: user.id,
-      username: user.username,
-      displayName: user.displayName,
-      bio: user.bio,
-      status: user.status || 'online',
-      avatarColor: user.avatarColor,
-      isOnline: true
-    }));
+    const onlineUsers = Array.from(socketToUser.values())
+      .filter(user => user.status !== 'invisible') // Hide invisible users
+      .map(user => ({
+        id: user.id,
+        username: user.username,
+        displayName: user.displayName,
+        bio: user.bio,
+        status: user.status || 'online',
+        avatarColor: user.avatarColor,
+        isOnline: true
+      }));
     io.emit('users_update', onlineUsers);
   } catch (error) {
     console.error('Error broadcasting user list:', error);

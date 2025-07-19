@@ -35,18 +35,23 @@ class DatabaseStorage {
   }
 
   async checkUserExists(username, email) {
-    const { or } = require("drizzle-orm");
-    const existingUsers = await db.select()
-      .from(users)
-      .where(
-        or(eq(users.username, username), eq(users.email, email))
-      );
-    
-    return {
-      usernameExists: existingUsers.some(u => u.username === username),
-      emailExists: existingUsers.some(u => u.email === email),
-      exists: existingUsers.length > 0
-    };
+    try {
+      const { or } = require("drizzle-orm");
+      const existingUsers = await db.select()
+        .from(users)
+        .where(
+          or(eq(users.username, username.toLowerCase()), eq(users.email, email.toLowerCase()))
+        );
+      
+      return {
+        usernameExists: existingUsers.some(u => u.username.toLowerCase() === username.toLowerCase()),
+        emailExists: existingUsers.some(u => u.email.toLowerCase() === email.toLowerCase()),
+        exists: existingUsers.length > 0
+      };
+    } catch (error) {
+      console.error('Error in checkUserExists:', error);
+      return { usernameExists: false, emailExists: false, exists: false };
+    }
   }
 
   async createUser(insertUser) {
@@ -69,24 +74,29 @@ class DatabaseStorage {
   }
 
   async authenticateUser(emailOrUsername, password) {
-    const { or } = require("drizzle-orm");
-    // Try to find user by email or username
-    const [user] = await db.select().from(users).where(
-      or(eq(users.email, emailOrUsername), eq(users.username, emailOrUsername))
-    );
-    
-    if (!user) {
+    try {
+      const { or } = require("drizzle-orm");
+      // Try to find user by email or username (case insensitive)
+      const [user] = await db.select().from(users).where(
+        or(eq(users.email, emailOrUsername.toLowerCase()), eq(users.username, emailOrUsername.toLowerCase()))
+      );
+      
+      if (!user) {
+        return null;
+      }
+      
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return null;
+      }
+      
+      // Return user without password
+      const { password: _, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    } catch (error) {
+      console.error('Error in authenticateUser:', error);
       return null;
     }
-    
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      return null;
-    }
-    
-    // Return user without password
-    const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
   }
 
   async updateUserProfile(id, profileData) {

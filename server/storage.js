@@ -55,22 +55,84 @@ class DatabaseStorage {
   }
 
   async createUser(insertUser) {
-    // Hash password before storing
-    const hashedPassword = await bcrypt.hash(insertUser.password, 12);
+    try {
+      // Hash password before storing
+      const hashedPassword = await bcrypt.hash(insertUser.password, 12);
+      
+      // Generate unique User ID and LY Code
+      const userId = await this.generateUniqueUserId();
+      const lyCode = await this.generateUniqueLyCode();
+      
+      const [user] = await db
+        .insert(users)
+        .values({
+          ...insertUser,
+          userId,
+          lyCode,
+          password: hashedPassword,
+          displayName: insertUser.displayName || insertUser.username,
+          avatarColor: insertUser.avatarColor || this.generateRandomColor()
+        })
+        .returning();
+      
+      // Return user without password
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error; // Re-throw to prevent partial data saves
+    }
+  }
+
+  async generateUniqueUserId() {
+    let userId;
+    let exists = true;
     
-    const [user] = await db
-      .insert(users)
-      .values({
-        ...insertUser,
-        password: hashedPassword,
-        displayName: insertUser.displayName || insertUser.username,
-        avatarColor: insertUser.avatarColor || this.generateRandomColor()
-      })
-      .returning();
+    while (exists) {
+      // Generate #123456 format
+      const randomNum = Math.floor(100000 + Math.random() * 900000);
+      userId = `#${randomNum}`;
+      
+      // Check if it exists
+      const [existingUser] = await db.select().from(users).where(eq(users.userId, userId));
+      exists = !!existingUser;
+    }
     
-    // Return user without password
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return userId;
+  }
+
+  async generateUniqueLyCode() {
+    let lyCode;
+    let exists = true;
+    
+    while (exists) {
+      // Generate LY + 6 random characters
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = 'LY';
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      lyCode = code;
+      
+      // Check if it exists
+      const [existingUser] = await db.select().from(users).where(eq(users.lyCode, lyCode));
+      exists = !!existingUser;
+    }
+    
+    return lyCode;
+  }
+
+  async findUserByUserId(userId) {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.userId, userId));
+      if (!user) return null;
+      
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    } catch (error) {
+      console.error('Error finding user by userId:', error);
+      return null;
+    }
   }
 
   async authenticateUser(emailOrUsername, password) {

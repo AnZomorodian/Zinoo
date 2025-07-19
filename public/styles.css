@@ -536,6 +536,13 @@ body {
     margin-top: 0.125rem;
 }
 
+.user-id {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    font-family: 'Courier New', monospace;
+    margin-top: 0.125rem;
+}
+
 .user-status {
     width: 8px;
     height: 8px;
@@ -1114,6 +1121,263 @@ select:focus {
 .reply-cancel:hover {
     background: #e5e7eb;
     color: #374151;
+}
+
+/* Enhanced Header Styles */
+.chat-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex: 1;
+}
+
+.brand-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.logo-gradient h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.025em;
+    margin: 0;
+}
+
+.header-tagline {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+}
+
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.header-center {
+    flex: 2;
+    display: flex;
+    justify-content: center;
+    padding: 0 2rem;
+}
+
+.search-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.search-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 0.5rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.search-input-wrapper:focus-within {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.search-icon {
+    color: rgba(255, 255, 255, 0.8);
+    margin-right: 0.5rem;
+}
+
+#userSearchInput {
+    background: none;
+    border: none;
+    outline: none;
+    color: white;
+    flex: 1;
+    font-size: 0.875rem;
+    padding: 0.25rem;
+}
+
+#userSearchInput::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.search-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.search-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.125rem;
+}
+
+.current-user {
+    font-weight: 600;
+    color: white;
+    font-size: 0.875rem;
+}
+
+.current-user-id {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-family: 'Courier New', monospace;
+}
+
+.icon-btn {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white !important;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Footer Styles */
+.chat-footer {
+    background: #f8fafc;
+    border-top: 1px solid #e5e7eb;
+    padding: 0.75rem 2rem;
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+}
+
+.footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.875rem;
+}
+
+.footer-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.footer-brand {
+    font-weight: 700;
+    color: #667eea;
+}
+
+.footer-version {
+    background: #667eea;
+    color: white;
+    padding: 0.125rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.footer-center {
+    color: #6b7280;
+}
+
+.footer-right {
+    color: #10b981;
+    font-weight: 500;
+}
+
+/* Settings Enhancements */
+.readonly-field {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.readonly-field input {
+    flex: 1;
+    background: #f9fafb;
+    border: 2px solid #e5e7eb;
+    color: #6b7280;
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
+
+.copy-btn {
+    background: #667eea;
+    border: none;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.copy-btn:hover {
+    background: #5b6de8;
+    transform: scale(1.05);
+}
+
+.field-help {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+/* Status Icons - Classic Minimal Style */
+.status-select option[value="online"]::before {
+    content: "● ";
+    color: #10b981;
+}
+
+.status-select option[value="away"]::before {
+    content: "◐ ";
+    color: #f59e0b;
+}
+
+.status-select option[value="busy"]::before {
+    content: "● ";
+    color: #ef4444;
+}
+
+.status-select option[value="invisible"]::before {
+    content: "○ ";
+    color: #6b7280;
 }
 
 /* Responsive Design */

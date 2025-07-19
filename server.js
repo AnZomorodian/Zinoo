@@ -88,6 +88,8 @@ io.on('connection', (socket) => {
       // Send authentication success
       socket.emit('auth_success', {
         id: user.id,
+        userId: user.userId,
+        lyCode: user.lyCode,
         username: user.username,
         email: user.email,
         displayName: user.displayName,
@@ -170,6 +172,8 @@ io.on('connection', (socket) => {
       // Send registration success
       socket.emit('auth_success', {
         id: user.id,
+        userId: user.userId,
+        lyCode: user.lyCode,
         username: user.username,
         email: user.email,
         displayName: user.displayName,
@@ -188,7 +192,34 @@ io.on('connection', (socket) => {
       await broadcastUserList();
     } catch (error) {
       console.error('Error in register handler:', error);
-      socket.emit('auth_error', 'Registration failed');
+      socket.emit('auth_error', 'Registration failed. Please try again.');
+    }
+  });
+
+  // Handle user search
+  socket.on('search_user', async (data) => {
+    try {
+      const user = socketToUser.get(socket.id);
+      if (!user || !data.userId) return;
+
+      const foundUser = await storage.findUserByUserId(data.userId);
+      
+      if (foundUser && foundUser.status !== 'invisible') {
+        socket.emit('user_search_result', {
+          found: true,
+          user: {
+            userId: foundUser.userId,
+            username: foundUser.username,
+            displayName: foundUser.displayName,
+            avatarColor: foundUser.avatarColor
+          }
+        });
+      } else {
+        socket.emit('user_search_result', { found: false });
+      }
+    } catch (error) {
+      console.error('Error in search_user handler:', error);
+      socket.emit('user_search_result', { found: false });
     }
   });
 

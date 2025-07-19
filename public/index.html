@@ -114,17 +114,40 @@
     <div id="chatContainer" class="chat-container hidden">
         <header class="chat-header">
             <div class="header-left">
-                <div class="brand-mini">
-                    <h1>Linkly</h1>
+                <div class="brand-section">
+                    <div class="logo-gradient">
+                        <h1>Linkly</h1>
+                    </div>
+                    <div class="header-tagline">Real-time messaging</div>
                 </div>
                 <div class="connection-status">
                     <span id="connectionStatus" class="status-dot"></span>
                     <span id="statusText">Connecting...</span>
                 </div>
             </div>
+            <div class="header-center">
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <input type="text" id="userSearchInput" placeholder="Search user by ID (#123456)" maxlength="7">
+                        <button id="searchUserBtn" class="search-btn">Search</button>
+                    </div>
+                </div>
+            </div>
             <div class="header-right">
-                <span id="currentUserName" class="current-user"></span>
-                <button id="settingsBtn" class="icon-btn" title="Settings">⚙️</button>
+                <div class="user-info">
+                    <span id="currentUserName" class="current-user"></span>
+                    <span id="currentUserId" class="current-user-id"></span>
+                </div>
+                <button id="settingsBtn" class="icon-btn" title="Settings">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V6a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
                 <button id="logoutBtn" class="icon-btn" title="Sign Out">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -187,6 +210,24 @@
                 </div>
             </main>
         </div>
+        
+        <!-- Footer -->
+        <footer class="chat-footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <span class="footer-brand">Linkly</span>
+                    <span class="footer-version">v2.0</span>
+                </div>
+                <div class="footer-center">
+                    <span class="footer-stats">
+                        <span id="footerUserCount">0</span> users online
+                    </span>
+                </div>
+                <div class="footer-right">
+                    <span class="footer-security">🔒 End-to-end secured</span>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <!-- Settings Modal -->
@@ -219,11 +260,38 @@
                             <div class="form-group">
                                 <label for="settingsStatus">Status</label>
                                 <select id="settingsStatus" class="status-select">
-                                    <option value="online">✅ Online</option>
-                                    <option value="away">🌙 Away</option>
-                                    <option value="busy">⚠️ Busy</option>
-                                    <option value="invisible">👻 Invisible</option>
+                                    <option value="online">● Online</option>
+                                    <option value="away">◐ Away</option>
+                                    <option value="busy">● Busy</option>
+                                    <option value="invisible">○ Invisible</option>
                                 </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="userIdDisplay">User ID</label>
+                                <div class="readonly-field">
+                                    <input type="text" id="userIdDisplay" readonly>
+                                    <button type="button" class="copy-btn" data-copy="userId">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="lyCodeDisplay">LY Code</label>
+                                <div class="readonly-field">
+                                    <input type="text" id="lyCodeDisplay" readonly>
+                                    <button type="button" class="copy-btn" data-copy="lyCode">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="field-help">Share this code with friends to connect privately</div>
                             </div>
                             
                             <div class="form-group">

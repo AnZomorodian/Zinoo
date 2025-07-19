@@ -22,8 +22,12 @@ const typingIndicator = document.getElementById('typingIndicator');
 const connectionStatus = document.getElementById('connectionStatus');
 const statusText = document.getElementById('statusText');
 const currentUserName = document.getElementById('currentUserName');
+const currentUserId = document.getElementById('currentUserId');
 const settingsBtn = document.getElementById('settingsBtn');
 const logoutBtn = document.getElementById('logoutBtn');
+const userSearchInput = document.getElementById('userSearchInput');
+const searchUserBtn = document.getElementById('searchUserBtn');
+const footerUserCount = document.getElementById('footerUserCount');
 const settingsModal = document.getElementById('settingsModal');
 const settingsForm = document.getElementById('settingsForm');
 const overlay = document.getElementById('overlay');
@@ -59,6 +63,37 @@ function setupEventListeners() {
     document.getElementById('closeSettingsBtn').addEventListener('click', closeSettings);
     document.getElementById('cancelSettingsBtn').addEventListener('click', closeSettings);
     overlay.addEventListener('click', closeSettings);
+    
+    // Copy buttons
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const copyType = e.currentTarget.dataset.copy;
+            let textToCopy = '';
+            
+            if (copyType === 'userId') {
+                textToCopy = currentUser?.userId || '#000000';
+            } else if (copyType === 'lyCode') {
+                textToCopy = currentUser?.lyCode || 'LY000000';
+            }
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // Show copied feedback
+                const originalText = e.currentTarget.innerHTML;
+                e.currentTarget.innerHTML = '✓';
+                setTimeout(() => {
+                    e.currentTarget.innerHTML = originalText;
+                }, 1000);
+            });
+        });
+    });
+    
+    // User search
+    searchUserBtn.addEventListener('click', handleUserSearch);
+    userSearchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            handleUserSearch();
+        }
+    });
     
     // Settings tabs
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -179,6 +214,7 @@ function handleSignUp(e) {
 function handleAuthSuccess(userData) {
     currentUser = userData;
     currentUserName.textContent = userData.displayName || userData.username;
+    currentUserId.textContent = userData.userId || '#000000';
     showChatInterface();
     hideAuthError();
     resetAuthForms();
@@ -414,6 +450,8 @@ function openSettings() {
     document.getElementById('settingsBio').value = currentUser.bio || '';
     document.getElementById('settingsStatus').value = currentUser.status || 'online';
     document.getElementById('settingsAvatarColor').value = currentUser.avatarColor || '#667eea';
+    document.getElementById('userIdDisplay').value = currentUser.userId || '#000000';
+    document.getElementById('lyCodeDisplay').value = currentUser.lyCode || 'LY000000';
     
     // Switch to profile tab by default
     switchTab('profile');
@@ -564,21 +602,24 @@ function addToProfileHistory(historyItem) {
 function updateUsersList(users) {
     usersList.innerHTML = '';
     userCount.textContent = users.length;
+    footerUserCount.textContent = users.length;
     
     users.forEach(user => {
         const li = document.createElement('li');
         li.className = 'user-item';
         
-        // Get status emoji
+        // Get status emoji and color
         const statusEmoji = getStatusEmoji(user.status);
+        const statusColor = getStatusColor(user.status);
         
         li.innerHTML = `
             <div class="user-avatar" style="background-color: ${user.avatarColor || '#667eea'}">
                 ${(user.displayName || user.username).charAt(0).toUpperCase()}
             </div>
             <div class="user-info">
-                <div class="user-name">${escapeHtml(user.displayName || user.username)} ${statusEmoji}</div>
+                <div class="user-name">${escapeHtml(user.displayName || user.username)} <span style="color: ${statusColor}">${statusEmoji}</span></div>
                 ${user.bio ? `<div class="user-bio">${escapeHtml(user.bio)}</div>` : ''}
+                ${user.userId ? `<div class="user-id">${escapeHtml(user.userId)}</div>` : ''}
             </div>
             <div class="user-status ${user.isOnline ? 'online' : 'offline'}"></div>
         `;
@@ -588,12 +629,97 @@ function updateUsersList(users) {
 
 function getStatusEmoji(status) {
     switch(status) {
-        case 'away': return '🌙';
-        case 'busy': return '⚠️';
-        case 'invisible': return '👻';
-        default: return '✅';
+        case 'away': return '◐';
+        case 'busy': return '●';
+        case 'invisible': return '○';
+        default: return '●';
     }
 }
+
+function getStatusColor(status) {
+    switch(status) {
+        case 'online': return '#10b981';
+        case 'away': return '#f59e0b';
+        case 'busy': return '#ef4444';
+        case 'invisible': return '#6b7280';
+        default: return '#10b981';
+    }
+}
+
+function handleUserSearch() {
+    const searchTerm = userSearchInput.value.trim();
+    if (!searchTerm) return;
+    
+    // Ensure it starts with # and is 7 characters
+    const formattedId = searchTerm.startsWith('#') ? searchTerm : '#' + searchTerm;
+    
+    if (formattedId.length !== 7 || !/^#\d{6}$/.test(formattedId)) {
+        showSystemMessage('Please enter a valid User ID format (#123456)', 'error');
+        return;
+    }
+    
+    socket.emit('search_user', { userId: formattedId });
+    userSearchInput.value = '';
+}
+
+// Socket event for search results
+socket.on('user_search_result', (result) => {
+    if (result.found) {
+        showSystemMessage(`Found user: ${result.user.displayName || result.user.username} (${result.user.userId})`, 'success');
+        // Could implement private chat here
+    } else {
+        showSystemMessage('User not found or is invisible', 'error');
+    }
+});
+
+function showSystemMessage(message, type = 'info') {
+    const systemMessage = document.createElement('div');
+    systemMessage.className = `system-message ${type}`;
+    systemMessage.textContent = message;
+    
+    messagesContainer.appendChild(systemMessage);
+    scrollToBottom();
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (systemMessage.parentNode) {
+            systemMessage.remove();
+        }
+    }, 5000);
+}
+
+// Add system message styles
+const systemStyles = document.createElement('style');
+systemStyles.textContent = `
+    .system-message {
+        padding: 0.75rem 1rem;
+        margin: 0.5rem 0;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-align: center;
+        animation: messageSlideIn 0.3s ease-out;
+    }
+    
+    .system-message.info {
+        background: #e0f2fe;
+        color: #0369a1;
+        border: 1px solid #7dd3fc;
+    }
+    
+    .system-message.success {
+        background: #dcfce7;
+        color: #15803d;
+        border: 1px solid #86efac;
+    }
+    
+    .system-message.error {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+    }
+`;
+document.head.appendChild(systemStyles);
 
 // Auto-focus first input when page loads
 window.addEventListener('load', () => {

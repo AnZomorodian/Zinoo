@@ -4,6 +4,8 @@ const { relations } = require('drizzle-orm');
 // Users table
 const users = pgTable('users', {
   id: serial('id').primaryKey(),
+  userId: varchar('user_id', { length: 7 }).notNull().unique(), // #123456 format
+  lyCode: varchar('ly_code', { length: 10 }).notNull().unique(), // Unique LY code
   username: varchar('username', { length: 50 }).notNull().unique(),
   email: varchar('email', { length: 255 }).notNull().unique(),
   password: varchar('password', { length: 255 }).notNull(),

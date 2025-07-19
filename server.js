@@ -61,6 +61,66 @@ io.on('connection', (socket) => {
     console.error('Socket error for', socket.id, ':', error);
   });
 
+  // Handle session verification for refresh
+  socket.on('verify_session', async (data) => {
+    try {
+      const { token, userData } = data;
+      
+      if (userData && userData.username) {
+        const user = await storage.getUserByUsername(userData.username);
+        
+        if (user) {
+          // Update user online status
+          await storage.updateUserOnlineStatus(user.id, true);
+          
+          // Store mappings
+          socketToUser.set(socket.id, user);
+          userToSocket.set(user.id, socket.id);
+
+          // Send session verification success
+          socket.emit('session_verified', {
+            id: user.id,
+            userId: user.userId,
+            lyCode: user.lyCode,
+            username: user.username,
+            email: user.email,
+            displayName: user.displayName,
+            bio: user.bio,
+            status: user.status || 'online',
+            avatarColor: user.avatarColor,
+            profilePicture: user.profilePicture || 'default'
+          });
+
+          // Send recent messages
+          const recentMessages = await storage.getRecentMessages(50);
+          const formattedMessages = recentMessages.map(msg => ({
+            id: msg.id,
+            username: msg.user.displayName || msg.user.username,
+            message: msg.message,
+            timestamp: msg.timestamp.toISOString(),
+            userId: msg.user.id,
+            displayName: msg.user.displayName,
+            avatarColor: msg.user.avatarColor
+          }));
+          
+          socket.emit('message_history', formattedMessages);
+          
+          // Send updated user list
+          await broadcastUserList();
+          
+          console.log(`Session verified for: ${user.username}`);
+        } else {
+          socket.emit('session_invalid');
+        }
+      } else {
+        socket.emit('session_invalid');
+      }
+    } catch (error) {
+      console.error('Session verification error:', error);
+      socket.emit('session_invalid');
+    }
+  });
+
   // Handle user authentication
   socket.on('authenticate', async (authData) => {
     try {

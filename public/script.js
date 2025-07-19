@@ -174,6 +174,23 @@ class LinkLyApp {
             this.updateConnectionStatus('disconnected', 'Disconnected');
         });
         
+        this.socket.on('session_verified', (userData) => {
+            this.currentUser = userData;
+            localStorage.setItem('authToken', userData.token || Date.now().toString());
+            localStorage.setItem('userData', JSON.stringify(userData));
+            this.showChat();
+            this.hideAuthError();
+            this.updateUserProfile();
+            console.log('Session verified and data restored');
+        });
+        
+        this.socket.on('session_invalid', () => {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
+            this.currentUser = null;
+            console.log('Session invalid, cleared local storage');
+        });
+
         this.socket.on('auth_success', (userData) => {
             this.currentUser = userData;
             localStorage.setItem('authToken', userData.token || Date.now().toString());
@@ -181,11 +198,6 @@ class LinkLyApp {
             this.showChat();
             this.hideAuthError();
             this.updateUserProfile();
-            
-            // Request updated user list
-            setTimeout(() => {
-                this.socket.emit('get_users');
-            }, 500);
         });
         
         this.socket.on('auth_error', (error) => {
@@ -260,9 +272,12 @@ class LinkLyApp {
         
         if (token && userData) {
             try {
-                this.currentUser = JSON.parse(userData);
-                this.showChat();
-                this.socket.emit('validate_token', token);
+                const parsedUserData = JSON.parse(userData);
+                // Verify session with server
+                this.socket.emit('verify_session', { 
+                    token: token, 
+                    userData: parsedUserData 
+                });
             } catch (error) {
                 console.error('Session restore failed:', error);
                 localStorage.removeItem('authToken');
@@ -627,7 +642,7 @@ class LinkLyApp {
                 </div>
                 <div class="user-item-info">
                     <h4>${this.escapeHtml(user.displayName || user.username)}</h4>
-                    <p>${user.bio ? this.escapeHtml(user.bio) : user.userId}</p>
+                    <p>#${user.userId || '000000'}</p>
                 </div>
             `;
             

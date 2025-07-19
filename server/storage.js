@@ -135,6 +135,19 @@ class DatabaseStorage {
     }
   }
 
+  async getUserByUsername(username) {
+    try {
+      const [user] = await db.select().from(users).where(eq(users.username, username));
+      if (!user) return null;
+      
+      const { password, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    } catch (error) {
+      console.error('Error finding user by username:', error);
+      return null;
+    }
+  }
+
   async authenticateUser(emailOrUsername, password) {
     try {
       const { or } = require("drizzle-orm");

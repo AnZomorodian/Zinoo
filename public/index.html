@@ -4,27 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Secure Messenger</title>
+    <title>Real-Time Messenger</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Username Modal -->
-    <div id="usernameModal" class="modal">
-        <div class="modal-content">
-            <h2>Welcome to Secure Messenger</h2>
-            <p>Enter your username to join the chat:</p>
-            <input type="text" id="usernameInput" placeholder="Enter your username" maxlength="50">
-            <button id="joinButton">Join Chat</button>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-container">
+            <div class="logo">
+                <div class="logo-icon">💬</div>
+                <h1>Real-Time Messenger</h1>
+            </div>
+            <p class="tagline">Connect instantly with friends and colleagues</p>
+            
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="usernameInput">Username</label>
+                    <input type="text" id="usernameInput" placeholder="Choose a unique username" required maxlength="50">
+                    <div class="field-hint">This will be your display name in the chat</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="emailInput">Email</label>
+                    <input type="email" id="emailInput" placeholder="your.email@example.com" required maxlength="255">
+                    <div class="field-hint">Used for account recovery and notifications</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="displayNameInput">Display Name (Optional)</label>
+                    <input type="text" id="displayNameInput" placeholder="Your friendly name" maxlength="100">
+                    <div class="field-hint">How others will see you (defaults to username)</div>
+                </div>
+                
+                <button type="submit" class="primary-btn">
+                    <span class="btn-text">Join Chat</span>
+                    <span class="btn-loading hidden">Joining...</span>
+                </button>
+            </form>
+            
+            <div id="authError" class="error-message hidden"></div>
+            
+            <div class="auth-footer">
+                <p>By joining, you agree to our community guidelines</p>
+            </div>
         </div>
     </div>
 
     <!-- Main Chat Interface -->
     <div id="chatContainer" class="chat-container hidden">
         <header class="chat-header">
-            <h1>💬 Secure Messenger</h1>
-            <div class="connection-status">
-                <span id="connectionStatus" class="status-dot"></span>
-                <span id="statusText">Connecting...</span>
+            <div class="header-left">
+                <h1>💬 Real-Time Messenger</h1>
+                <div class="connection-status">
+                    <span id="connectionStatus" class="status-dot"></span>
+                    <span id="statusText">Connecting...</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button id="settingsBtn" class="icon-btn" title="Settings">⚙️</button>
+                <button id="logoutBtn" class="icon-btn" title="Logout">🚪</button>
             </div>
         </header>
 
@@ -41,9 +79,10 @@
                     <ul class="features-list">
                         <li>✅ Real-time messaging</li>
                         <li>✅ Input sanitization</li>
+                        <li>✅ Email authentication</li>
+                        <li>✅ Unique constraints</li>
+                        <li>✅ Persistent storage</li>
                         <li>✅ CORS protection</li>
-                        <li>✅ Helmet security headers</li>
-                        <li>✅ Message length limits</li>
                     </ul>
                 </div>
             </aside>
@@ -69,6 +108,42 @@
             </main>
         </div>
     </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-btn" id="closeSettingsBtn">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="settingsForm">
+                    <div class="form-group">
+                        <label for="settingsDisplayName">Display Name</label>
+                        <input type="text" id="settingsDisplayName" maxlength="100">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="settingsBio">Bio</label>
+                        <textarea id="settingsBio" placeholder="Tell others about yourself..." maxlength="200"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="settingsAvatarColor">Avatar Color</label>
+                        <input type="color" id="settingsAvatarColor">
+                    </div>
+                    
+                    <div class="settings-actions">
+                        <button type="submit" class="primary-btn">Save Changes</button>
+                        <button type="button" class="secondary-btn" id="cancelSettingsBtn">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay" class="overlay hidden"></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>

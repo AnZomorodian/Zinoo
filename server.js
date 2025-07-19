@@ -57,17 +57,37 @@ io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
   // Handle user joining
-  socket.on('join', async (username) => {
+  socket.on('join', async (userData) => {
     try {
-      if (!username || username.trim() === '') return;
+      if (!userData || !userData.username || !userData.email) {
+        socket.emit('error', 'Username and email are required');
+        return;
+      }
       
-      const sanitizedUsername = username.trim().substring(0, 50);
+      const sanitizedUsername = userData.username.trim().substring(0, 50);
+      const sanitizedEmail = userData.email.trim().toLowerCase();
+      const sanitizedDisplayName = userData.displayName ? userData.displayName.trim().substring(0, 100) : sanitizedUsername;
       
-      // Find or create user in database
-      let user = await storage.getUserByUsername(sanitizedUsername);
+      // Check if user already exists
+      const existingCheck = await storage.checkUserExists(sanitizedUsername, sanitizedEmail);
+      
+      if (existingCheck.usernameExists) {
+        socket.emit('error', 'Username already taken. Please choose a different one.');
+        return;
+      }
+      
+      if (existingCheck.emailExists) {
+        socket.emit('error', 'Email already registered. Please use a different email.');
+        return;
+      }
+      
+      // Find existing user by email or create new one
+      let user = await storage.getUserByEmail(sanitizedEmail);
       if (!user) {
         user = await storage.createUser({
           username: sanitizedUsername,
+          email: sanitizedEmail,
+          displayName: sanitizedDisplayName,
           isOnline: true
         });
       } else {
@@ -82,7 +102,7 @@ io.on('connection', (socket) => {
       const recentMessages = await storage.getRecentMessages(50);
       const formattedMessages = recentMessages.map(msg => ({
         id: msg.id,
-        username: msg.user.username,
+        username: msg.user.displayName || msg.user.username,
         message: msg.message,
         timestamp: msg.timestamp.toISOString(),
         userId: msg.user.id
@@ -91,7 +111,7 @@ io.on('connection', (socket) => {
       socket.emit('message_history', formattedMessages);
       
       // Broadcast user joined
-      socket.broadcast.emit('user_joined', sanitizedUsername);
+      socket.broadcast.emit('user_joined', user.displayName || user.username);
       
       // Send updated user list
       await broadcastUserList();
@@ -121,7 +141,7 @@ io.on('connection', (socket) => {
       // Format message for broadcast
       const message = {
         id: savedMessage.id,
-        username: user.username,
+        username: user.displayName || user.username,
         message: savedMessage.message,
         timestamp: savedMessage.timestamp.toISOString(),
         userId: user.id
@@ -141,9 +161,40 @@ io.on('connection', (socket) => {
     if (!user) return;
 
     socket.broadcast.emit('user_typing', {
-      username: user.username,
+      username: user.displayName || user.username,
       isTyping: isTyping
     });
+  });
+
+  // Handle profile updates
+  socket.on('update_profile', async (profileData) => {
+    try {
+      const user = socketToUser.get(socket.id);
+      if (!user) return;
+
+      const updatedUser = await storage.updateUserProfile(user.id, {
+        displayName: profileData.displayName?.trim().substring(0, 100),
+        bio: profileData.bio?.trim().substring(0, 200),
+        avatarColor: profileData.avatarColor
+      });
+
+      // Update the stored user data
+      socketToUser.set(socket.id, updatedUser);
+      userToSocket.set(user.id, socket.id);
+
+      // Confirm update to the user
+      socket.emit('profile_updated', {
+        displayName: updatedUser.displayName,
+        bio: updatedUser.bio,
+        avatarColor: updatedUser.avatarColor
+      });
+
+      // Broadcast updated user list
+      await broadcastUserList();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      socket.emit('error', 'Failed to update profile');
+    }
   });
 
   // Handle disconnection
@@ -159,7 +210,7 @@ io.on('connection', (socket) => {
         userToSocket.delete(user.id);
         
         // Broadcast user left
-        socket.broadcast.emit('user_left', user.username);
+        socket.broadcast.emit('user_left', user.displayName || user.username);
         
         // Send updated user list
         await broadcastUserList();
@@ -177,6 +228,9 @@ async function broadcastUserList() {
     const onlineUsers = Array.from(socketToUser.values()).map(user => ({
       id: user.id,
       username: user.username,
+      displayName: user.displayName,
+      bio: user.bio,
+      avatarColor: user.avatarColor,
       isOnline: true
     }));
     io.emit('users_update', onlineUsers);

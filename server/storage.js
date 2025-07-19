@@ -16,12 +16,57 @@ class DatabaseStorage {
     return user || undefined;
   }
 
+  async getUserByEmail(email) {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user || undefined;
+  }
+
+  async checkUserExists(username, email) {
+    const { or } = require("drizzle-orm");
+    const existingUsers = await db.select()
+      .from(users)
+      .where(
+        or(eq(users.username, username), eq(users.email, email))
+      );
+    
+    return {
+      usernameExists: existingUsers.some(u => u.username === username),
+      emailExists: existingUsers.some(u => u.email === email),
+      exists: existingUsers.length > 0
+    };
+  }
+
   async createUser(insertUser) {
     const [user] = await db
       .insert(users)
-      .values(insertUser)
+      .values({
+        ...insertUser,
+        displayName: insertUser.displayName || insertUser.username,
+        avatarColor: insertUser.avatarColor || this.generateRandomColor()
+      })
       .returning();
     return user;
+  }
+
+  async updateUserProfile(id, profileData) {
+    const [user] = await db
+      .update(users)
+      .set({
+        ...profileData,
+        lastSeen: new Date()
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  generateRandomColor() {
+    const colors = [
+      '#4F46E5', '#7C3AED', '#DC2626', '#EA580C', '#D97706',
+      '#CA8A04', '#65A30D', '#16A34A', '#059669', '#0891B2',
+      '#0284C7', '#2563EB', '#9333EA', '#C2410C', '#BE123C'
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
   }
 
   async updateUserOnlineStatus(id, isOnline) {

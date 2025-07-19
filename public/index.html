@@ -200,22 +200,50 @@
             
             <!-- Main Chat Area -->
             <div class="chat-main">
-                <!-- Chat Header -->
+                <!-- Discord-Style Chat Header -->
                 <div class="chat-header">
-                    <h2 class="chat-title">General Chat</h2>
-                    <div class="connection-status">
-                        <div id="connectionStatus" class="status-indicator"></div>
-                        <span id="statusText" class="status-text">Connecting...</span>
+                    <div class="channel-info">
+                        <div class="channel-icon"># </div>
+                        <div class="channel-details">
+                            <span class="channel-name">general</span>
+                            <span class="channel-description">Welcome to LinkLy - Chat with everyone!</span>
+                        </div>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="header-button" title="Search Messages" id="searchMessages">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="M21 21l-4.35-4.35"></path>
+                            </svg>
+                        </button>
+                        <div class="connection-status">
+                            <div id="connectionStatus" class="status-indicator"></div>
+                            <span id="statusText" class="status-text">Connecting...</span>
+                        </div>
                     </div>
                 </div>
                 
                 <!-- Messages Container -->
                 <div id="messagesContainer" class="messages-container">
-                    <div class="welcome-message">
-                        <div class="welcome-content">
-                            <div class="welcome-icon">🚀</div>
-                            <h3>Welcome to LinkLy!</h3>
-                            <p>Start a conversation and connect with your team. Send your first message to get the conversation rolling!</p>
+                    <div class="channel-start">
+                        <div class="channel-start-icon">#</div>
+                        <h2 class="channel-start-title">Welcome to #general</h2>
+                        <p class="channel-start-description">This is the beginning of the <strong>#general</strong> channel.</p>
+                        <div class="channel-guidelines">
+                            <div class="guideline-item">
+                                <span class="guideline-icon">📋</span>
+                                <div class="guideline-text">
+                                    <strong>Channel Guidelines</strong>
+                                    <p>Keep conversations respectful and on-topic</p>
+                                </div>
+                            </div>
+                            <div class="guideline-item">
+                                <span class="guideline-icon">💬</span>
+                                <div class="guideline-text">
+                                    <strong>Getting Started</strong>
+                                    <p>Say hello and introduce yourself to the community!</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -236,7 +264,7 @@
                                 </svg>
                             </button>
                         </div>
-                        <textarea id="messageInput" class="message-input" placeholder="Type your message... (Press Enter to send)" rows="1"></textarea>
+                        <textarea id="messageInput" class="message-input" placeholder="Message #general" rows="1"></textarea>
                         <button id="sendButton" class="send-button" title="Send message">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>

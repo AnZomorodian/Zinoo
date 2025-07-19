@@ -15,6 +15,7 @@ class LinkLyApp {
         this.bindElements();
         this.setupEventListeners();
         this.setupSocketListeners();
+        this.setupDiscordFeatures();
         this.checkExistingSession();
         this.animateAuthScreen();
     }
@@ -490,11 +491,25 @@ class LinkLyApp {
         if (!this.messagesContainer) return;
         
         this.messagesContainer.innerHTML = `
-            <div class="welcome-message">
-                <div class="welcome-content">
-                    <div class="welcome-icon">🚀</div>
-                    <h3>Welcome to LinkLy!</h3>
-                    <p>Start a conversation and connect with your team. Send your first message to get the conversation rolling!</p>
+            <div class="channel-start">
+                <div class="channel-start-icon">#</div>
+                <h2 class="channel-start-title">Welcome to #general</h2>
+                <p class="channel-start-description">This is the beginning of the <strong>#general</strong> channel.</p>
+                <div class="channel-guidelines">
+                    <div class="guideline-item">
+                        <span class="guideline-icon">📋</span>
+                        <div class="guideline-text">
+                            <strong>Channel Guidelines</strong>
+                            <p>Keep conversations respectful and on-topic</p>
+                        </div>
+                    </div>
+                    <div class="guideline-item">
+                        <span class="guideline-icon">💬</span>
+                        <div class="guideline-text">
+                            <strong>Getting Started</strong>
+                            <p>Say hello and introduce yourself to the community!</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
@@ -503,41 +518,90 @@ class LinkLyApp {
     displayMessage(message, scroll = true) {
         if (!this.messagesContainer) return;
         
-        // Remove welcome message
-        const welcomeMsg = this.messagesContainer.querySelector('.welcome-message');
-        if (welcomeMsg) {
-            welcomeMsg.style.opacity = '0';
-            welcomeMsg.style.transform = 'translateY(-20px)';
-            setTimeout(() => welcomeMsg.remove(), 300);
+        // Remove channel start when first real message arrives
+        const channelStart = this.messagesContainer.querySelector('.channel-start');
+        if (channelStart) {
+            channelStart.remove();
         }
         
-        const messageEl = document.createElement('div');
-        messageEl.className = 'message';
+        // Check if we should group with previous message (Discord-style)
+        const lastMessage = this.messagesContainer.lastElementChild;
+        const shouldGroup = this.shouldGroupMessage(lastMessage, message);
         
-        const isOwn = this.currentUser && message.username === (this.currentUser.displayName || this.currentUser.username);
-        if (isOwn) {
-            messageEl.classList.add('own-message');
+        if (shouldGroup) {
+            // Add to existing message group
+            this.addToMessageGroup(lastMessage, message);
+        } else {
+            // Create new message group
+            this.createNewMessageGroup(message);
         }
         
-        const time = new Date(message.timestamp).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
+        if (scroll) {
+            this.scrollToBottom();
+        }
+    }
+    
+    shouldGroupMessage(lastMessageElement, newMessage) {
+        if (!lastMessageElement || !lastMessageElement.classList.contains('message-group')) return false;
+        
+        const lastUsername = lastMessageElement.dataset.username;
+        const lastTimestamp = parseInt(lastMessageElement.dataset.timestamp);
+        const newTimestamp = new Date(newMessage.timestamp).getTime();
+        
+        // Group if same user and within 5 minutes
+        return lastUsername === newMessage.username && (newTimestamp - lastTimestamp) < 5 * 60 * 1000;
+    }
+    
+    addToMessageGroup(messageGroup, message) {
+        const messagesContent = messageGroup.querySelector('.message-group-content');
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+        messageContent.innerHTML = this.escapeHtml(message.message);
+        messagesContent.appendChild(messageContent);
+        
+        // Update timestamp
+        messageGroup.dataset.timestamp = new Date(message.timestamp).getTime();
+        const timeElement = messageGroup.querySelector('.message-time');
+        if (timeElement) {
+            timeElement.textContent = new Date(message.timestamp).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+    }
+    
+    createNewMessageGroup(message) {
+        const messageGroup = document.createElement('div');
+        messageGroup.className = 'message-group';
+        messageGroup.dataset.username = message.username;
+        messageGroup.dataset.timestamp = new Date(message.timestamp).getTime();
+        
+        if (message.username === (this.currentUser?.displayName || this.currentUser?.username)) {
+            messageGroup.classList.add('own-message');
+        }
+        
+        const timeStr = new Date(message.timestamp).toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit' 
         });
         
-        const avatar = message.username.charAt(0).toUpperCase();
+        const userInitial = message.username ? message.username.charAt(0).toUpperCase() : 'U';
+        const avatarColor = message.avatarColor || '#667eea';
         
-        messageEl.innerHTML = `
-            <div class="message-bubble">
+        messageGroup.innerHTML = `
+            <div class="message-avatar" style="background: ${avatarColor}">
+                ${userInitial}
+            </div>
+            <div class="message-group-content">
                 <div class="message-header">
-                    <div class="message-avatar">${avatar}</div>
-                    <span class="message-author">${this.escapeHtml(message.username)}</span>
-                    <span class="message-time">${time}</span>
+                    <span class="message-author">${this.escapeHtml(message.displayName || message.username)}</span>
+                    <span class="message-time">${timeStr}</span>
                 </div>
                 <div class="message-content">${this.escapeHtml(message.message)}</div>
             </div>
         `;
         
-        this.messagesContainer.appendChild(messageEl);
+        this.messagesContainer.appendChild(messageGroup);
         
         if (scroll) {
             this.scrollToBottom();
@@ -903,6 +967,107 @@ class LinkLyApp {
             messageInput.selectionStart = messageInput.selectionEnd = start + emoji.length;
             messageInput.focus();
             this.hideEmojiPicker();
+        }
+    }
+    
+    setupDiscordFeatures() {
+        // Search messages functionality
+        const searchBtn = document.getElementById('searchMessages');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', () => {
+                this.showSearchOverlay();
+            });
+        }
+        
+        // Add message reactions on hover
+        this.setupMessageHoverEffects();
+        
+        // Add keyboard shortcuts (Discord-like)
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + K for search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                this.showSearchOverlay();
+            }
+            
+            // Escape to close overlays
+            if (e.key === 'Escape') {
+                this.closeAllOverlays();
+            }
+        });
+    }
+    
+    setupMessageHoverEffects() {
+        // Use event delegation for dynamic messages
+        if (this.messagesContainer) {
+            this.messagesContainer.addEventListener('mouseenter', (e) => {
+                if (e.target.closest('.message-group')) {
+                    const messageGroup = e.target.closest('.message-group');
+                    messageGroup.classList.add('hovered');
+                }
+            }, true);
+            
+            this.messagesContainer.addEventListener('mouseleave', (e) => {
+                if (e.target.closest('.message-group')) {
+                    const messageGroup = e.target.closest('.message-group');
+                    messageGroup.classList.remove('hovered');
+                }
+            }, true);
+        }
+    }
+    
+    showSearchOverlay() {
+        // Create search overlay if it doesn't exist
+        let searchOverlay = document.getElementById('searchOverlay');
+        if (!searchOverlay) {
+            searchOverlay = document.createElement('div');
+            searchOverlay.id = 'searchOverlay';
+            searchOverlay.className = 'search-overlay';
+            searchOverlay.innerHTML = `
+                <div class="search-modal">
+                    <div class="search-header">
+                        <input type="text" id="searchInput" class="search-input-modal" placeholder="Search messages..." autofocus>
+                        <button class="search-close" onclick="this.closest('.search-overlay').remove()">×</button>
+                    </div>
+                    <div class="search-results">
+                        <div class="search-placeholder">Start typing to search messages...</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(searchOverlay);
+            
+            // Add search functionality
+            const searchInput = searchOverlay.querySelector('#searchInput');
+            searchInput.addEventListener('input', (e) => {
+                this.performMessageSearch(e.target.value);
+            });
+        }
+        
+        searchOverlay.style.display = 'flex';
+        searchOverlay.querySelector('#searchInput').focus();
+    }
+    
+    performMessageSearch(query) {
+        // This would typically search through message history
+        // For now, we'll show a placeholder
+        const searchResults = document.querySelector('.search-results');
+        if (query.trim()) {
+            searchResults.innerHTML = `
+                <div class="search-placeholder">
+                    <div class="search-icon">🔍</div>
+                    <p>Search functionality coming soon!</p>
+                    <p class="search-hint">We're working on implementing message search across your conversation history.</p>
+                </div>
+            `;
+        } else {
+            searchResults.innerHTML = '<div class="search-placeholder">Start typing to search messages...</div>';
+        }
+    }
+    
+    closeAllOverlays() {
+        const searchOverlay = document.getElementById('searchOverlay');
+        if (searchOverlay) {
+            searchOverlay.remove();
         }
     }
 }

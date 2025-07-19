@@ -116,7 +116,6 @@
         <header class="chat-header">
             <div class="header-left">
                 <div class="brand-mini">
-                    <span class="logo-mini">🔗</span>
                     <h1>Linkly</h1>
                 </div>
                 <div class="connection-status">
@@ -127,7 +126,13 @@
             <div class="header-right">
                 <span id="currentUserName" class="current-user"></span>
                 <button id="settingsBtn" class="icon-btn" title="Settings">⚙️</button>
-                <button id="logoutBtn" class="icon-btn" title="Sign Out">↗️</button>
+                <button id="logoutBtn" class="icon-btn" title="Sign Out">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16,17 21,12 16,7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                </button>
             </div>
         </header>
 
@@ -167,15 +172,19 @@
                 <div id="typingIndicator" class="typing-indicator hidden"></div>
                 
                 <div class="message-input-container">
-                    <input type="text" 
-                           id="messageInput" 
-                           placeholder="Type your message..." 
-                           maxlength="500"
-                           autocomplete="off">
-                    <button id="sendButton">
-                        <span>Send</span>
-                        <span class="send-icon">→</span>
-                    </button>
+                    <div class="message-input-wrapper">
+                        <input type="text" 
+                               id="messageInput" 
+                               placeholder="Type your message..." 
+                               maxlength="500"
+                               autocomplete="off">
+                        <button id="sendButton">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </main>
         </div>
@@ -189,27 +198,63 @@
                 <button class="close-btn" id="closeSettingsBtn">×</button>
             </div>
             <div class="modal-body">
-                <form id="settingsForm">
-                    <div class="form-group">
-                        <label for="settingsDisplayName">Display Name</label>
-                        <input type="text" id="settingsDisplayName" maxlength="100" placeholder="How others see you">
+                <div class="settings-tabs">
+                    <button type="button" class="tab-btn active" data-tab="profile">Profile</button>
+                    <button type="button" class="tab-btn" data-tab="history">History</button>
+                </div>
+                
+                <div class="tab-content">
+                    <!-- Profile Tab -->
+                    <div id="profileTab" class="tab-pane active">
+                        <form id="settingsForm">
+                            <div class="form-group">
+                                <label for="settingsDisplayName">Display Name</label>
+                                <input type="text" id="settingsDisplayName" maxlength="100" placeholder="How others see you">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="settingsBio">Bio</label>
+                                <textarea id="settingsBio" placeholder="Tell others about yourself..." maxlength="200"></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="settingsStatus">Status</label>
+                                <select id="settingsStatus">
+                                    <option value="online">🟢 Online</option>
+                                    <option value="away">🟡 Away</option>
+                                    <option value="busy">🔴 Busy</option>
+                                    <option value="invisible">⚫ Invisible</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="settingsAvatarColor">Avatar Color</label>
+                                <input type="color" id="settingsAvatarColor">
+                            </div>
+                            
+                            <div class="settings-actions">
+                                <button type="submit" class="primary-btn">Save Changes</button>
+                                <button type="button" class="secondary-btn" id="cancelSettingsBtn">Cancel</button>
+                            </div>
+                        </form>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="settingsBio">Bio</label>
-                        <textarea id="settingsBio" placeholder="Tell others about yourself..." maxlength="200"></textarea>
+                    <!-- History Tab -->
+                    <div id="historyTab" class="tab-pane">
+                        <div class="history-section">
+                            <h3>Recent Activity</h3>
+                            <div id="profileHistory" class="history-list">
+                                <div class="history-item">
+                                    <span class="history-icon">👤</span>
+                                    <div class="history-content">
+                                        <div class="history-text">Profile created</div>
+                                        <div class="history-time">Today</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="settingsAvatarColor">Avatar Color</label>
-                        <input type="color" id="settingsAvatarColor">
-                    </div>
-                    
-                    <div class="settings-actions">
-                        <button type="submit" class="primary-btn">Save Changes</button>
-                        <button type="button" class="secondary-btn" id="cancelSettingsBtn">Cancel</button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>

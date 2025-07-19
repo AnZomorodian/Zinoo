@@ -60,6 +60,11 @@ function setupEventListeners() {
     document.getElementById('cancelSettingsBtn').addEventListener('click', closeSettings);
     overlay.addEventListener('click', closeSettings);
     
+    // Settings tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+    
     // Logout
     logoutBtn.addEventListener('click', handleLogout);
     
@@ -297,26 +302,7 @@ function handleUserLeft(username) {
     showSystemMessage(`${username} left the chat`);
 }
 
-function updateUsersList(users) {
-    usersList.innerHTML = '';
-    userCount.textContent = users.length;
-    
-    users.forEach(user => {
-        const li = document.createElement('li');
-        li.className = 'user-item';
-        li.innerHTML = `
-            <div class="user-avatar" style="background-color: ${user.avatarColor || '#667eea'}">
-                ${(user.displayName || user.username).charAt(0).toUpperCase()}
-            </div>
-            <div class="user-info">
-                <div class="user-name">${escapeHtml(user.displayName || user.username)}</div>
-                ${user.bio ? `<div class="user-bio">${escapeHtml(user.bio)}</div>` : ''}
-            </div>
-            <div class="user-status ${user.isOnline ? 'online' : 'offline'}"></div>
-        `;
-        usersList.appendChild(li);
-    });
-}
+
 
 function handleUserTyping(data) {
     if (data.isTyping) {
@@ -333,7 +319,11 @@ function openSettings() {
     // Populate current settings
     document.getElementById('settingsDisplayName').value = currentUser.displayName || '';
     document.getElementById('settingsBio').value = currentUser.bio || '';
+    document.getElementById('settingsStatus').value = currentUser.status || 'online';
     document.getElementById('settingsAvatarColor').value = currentUser.avatarColor || '#667eea';
+    
+    // Switch to profile tab by default
+    switchTab('profile');
     
     settingsModal.classList.remove('hidden');
     overlay.classList.remove('hidden');
@@ -349,11 +339,13 @@ function handleSettingsUpdate(e) {
     
     const displayName = document.getElementById('settingsDisplayName').value.trim();
     const bio = document.getElementById('settingsBio').value.trim();
+    const status = document.getElementById('settingsStatus').value;
     const avatarColor = document.getElementById('settingsAvatarColor').value;
     
     socket.emit('update_profile', {
         displayName,
         bio,
+        status,
         avatarColor
     });
 }
@@ -361,8 +353,14 @@ function handleSettingsUpdate(e) {
 function handleProfileUpdated(updatedProfile) {
     currentUser = { ...currentUser, ...updatedProfile };
     currentUserName.textContent = currentUser.displayName || currentUser.username;
+    
+    // Add to history if provided
+    if (updatedProfile.historyItem) {
+        addToProfileHistory(updatedProfile.historyItem);
+    }
+    
     closeSettings();
-    showSystemMessage('Profile updated successfully!');
+    // Don't show system message - history shows it instead
 }
 
 function handleLogout() {
@@ -439,6 +437,69 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function switchTab(tabName) {
+    // Remove active class from all tabs and panes
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    
+    // Add active class to selected tab and pane
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    document.getElementById(`${tabName}Tab`).classList.add('active');
+}
+
+function addToProfileHistory(historyItem) {
+    const historyList = document.getElementById('profileHistory');
+    const historyItemEl = document.createElement('div');
+    historyItemEl.className = 'history-item';
+    
+    const time = new Date(historyItem.timestamp).toLocaleString();
+    
+    historyItemEl.innerHTML = `
+        <span class="history-icon">✏️</span>
+        <div class="history-content">
+            <div class="history-text">${escapeHtml(historyItem.details || historyItem.action)}</div>
+            <div class="history-time">${time}</div>
+        </div>
+    `;
+    
+    // Add to beginning of list
+    historyList.insertBefore(historyItemEl, historyList.firstChild);
+}
+
+function updateUsersList(users) {
+    usersList.innerHTML = '';
+    userCount.textContent = users.length;
+    
+    users.forEach(user => {
+        const li = document.createElement('li');
+        li.className = 'user-item';
+        
+        // Get status emoji
+        const statusEmoji = getStatusEmoji(user.status);
+        
+        li.innerHTML = `
+            <div class="user-avatar" style="background-color: ${user.avatarColor || '#667eea'}">
+                ${(user.displayName || user.username).charAt(0).toUpperCase()}
+            </div>
+            <div class="user-info">
+                <div class="user-name">${escapeHtml(user.displayName || user.username)} ${statusEmoji}</div>
+                ${user.bio ? `<div class="user-bio">${escapeHtml(user.bio)}</div>` : ''}
+            </div>
+            <div class="user-status ${user.isOnline ? 'online' : 'offline'}"></div>
+        `;
+        usersList.appendChild(li);
+    });
+}
+
+function getStatusEmoji(status) {
+    switch(status) {
+        case 'away': return '🟡';
+        case 'busy': return '🔴';
+        case 'invisible': return '⚫';
+        default: return '🟢';
+    }
 }
 
 // Auto-focus first input when page loads

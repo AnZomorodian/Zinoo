@@ -145,6 +145,19 @@ class DatabaseStorage {
     const result = await db.select().from(messages);
     return result.length;
   }
+
+  async addProfileHistory(userId, action, details = null) {
+    const timestamp = new Date();
+    // You could implement a separate history table here if needed
+    // For now, we'll just return the formatted history item
+    return {
+      id: Date.now(),
+      action,
+      details,
+      timestamp: timestamp.toISOString(),
+      userId
+    };
+  }
 }
 
 const storage = new DatabaseStorage();

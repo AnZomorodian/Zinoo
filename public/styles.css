@@ -400,10 +400,7 @@ body {
     gap: 0.75rem;
 }
 
-.logo-mini {
-    font-size: 1.5rem;
-    text-shadow: 0 0 10px rgba(255,255,255,0.5);
-}
+
 
 .header-left h1 {
     font-size: 1.5rem;
@@ -731,56 +728,70 @@ body {
 .message-input-container {
     padding: 1.5rem;
     border-top: 1px solid #e5e7eb;
-    display: flex;
-    gap: 0.75rem;
     background: #f9fafb;
 }
 
-#messageInput {
-    flex: 1;
-    padding: 1rem 1.25rem;
+.message-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: white;
     border: 2px solid #e5e7eb;
     border-radius: 24px;
-    font-size: 1rem;
-    background: white;
+    padding: 0.5rem;
     transition: all 0.3s ease;
-    resize: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-#messageInput:focus {
-    outline: none;
+.message-input-wrapper:focus-within {
     border-color: #667eea;
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
 
+#messageInput {
+    flex: 1;
+    padding: 0.875rem 1.25rem;
+    border: none;
+    background: transparent;
+    font-size: 1rem;
+    resize: none;
+    outline: none;
+}
+
+#messageInput::placeholder {
+    color: #9ca3af;
+}
+
 #sendButton {
-    padding: 1rem 1.5rem;
+    width: 44px;
+    height: 44px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    border-radius: 24px;
-    font-weight: 600;
+    border-radius: 50%;
     cursor: pointer;
     transition: all 0.3s ease;
-    white-space: nowrap;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+    flex-shrink: 0;
 }
 
 #sendButton:hover {
-    transform: translateY(-1px);
+    transform: translateY(-1px) scale(1.05);
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-.send-icon {
-    font-size: 1.2rem;
+#sendButton:active {
+    transform: translateY(0) scale(0.98);
+}
+
+#sendButton svg {
     transition: transform 0.3s ease;
 }
 
-#sendButton:hover .send-icon {
-    transform: translateX(2px);
+#sendButton:hover svg {
+    transform: translateX(1px);
 }
 
 /* Modal Styles */
@@ -879,6 +890,124 @@ body {
     flex: 1;
 }
 
+/* Settings Tabs */
+.settings-tabs {
+    display: flex;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 2rem;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 1rem;
+    background: none;
+    border: none;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-btn:hover {
+    color: #374151;
+    background: #f9fafb;
+}
+
+.tab-btn.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.tab-content {
+    min-height: 300px;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* History Section */
+.history-section h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 1.5rem;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.history-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.history-item:hover {
+    background: #f1f5f9;
+    border-color: #d1d5db;
+}
+
+.history-icon {
+    font-size: 1.25rem;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 50%;
+    border: 1px solid #e5e7eb;
+}
+
+.history-content {
+    flex: 1;
+}
+
+.history-text {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.history-time {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.125rem;
+}
+
+/* Select Styling */
+select {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 1rem;
+    background: #f9fafb;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+select:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .auth-container {
@@ -963,12 +1092,15 @@ body {
         gap: 0.5rem;
     }
     
-    .message-input-container {
+    .message-input-wrapper {
         flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
     }
     
     #sendButton {
         width: 100%;
-        justify-content: center;
+        height: 48px;
+        border-radius: 12px;
     }
 }

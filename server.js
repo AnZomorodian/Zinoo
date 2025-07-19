@@ -87,6 +87,7 @@ io.on('connection', (socket) => {
         email: user.email,
         displayName: user.displayName,
         bio: user.bio,
+        status: user.status || 'online',
         avatarColor: user.avatarColor
       });
 
@@ -163,6 +164,7 @@ io.on('connection', (socket) => {
         email: user.email,
         displayName: user.displayName,
         bio: user.bio,
+        status: user.status || 'online',
         avatarColor: user.avatarColor
       });
 
@@ -234,6 +236,7 @@ io.on('connection', (socket) => {
       const updatedUser = await storage.updateUserProfile(user.id, {
         displayName: profileData.displayName?.trim().substring(0, 100),
         bio: profileData.bio?.trim().substring(0, 200),
+        status: profileData.status || 'online',
         avatarColor: profileData.avatarColor
       });
 
@@ -241,11 +244,16 @@ io.on('connection', (socket) => {
       socketToUser.set(socket.id, updatedUser);
       userToSocket.set(user.id, socket.id);
 
+      // Add to profile history
+      const historyItem = await storage.addProfileHistory(user.id, 'Profile updated', 'Display name, bio, status, or avatar color changed');
+      
       // Confirm update to the user
       socket.emit('profile_updated', {
         displayName: updatedUser.displayName,
         bio: updatedUser.bio,
-        avatarColor: updatedUser.avatarColor
+        status: updatedUser.status,
+        avatarColor: updatedUser.avatarColor,
+        historyItem: historyItem
       });
 
       // Broadcast updated user list
@@ -289,6 +297,7 @@ async function broadcastUserList() {
       username: user.username,
       displayName: user.displayName,
       bio: user.bio,
+      status: user.status || 'online',
       avatarColor: user.avatarColor,
       isOnline: true
     }));

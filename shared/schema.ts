@@ -9,6 +9,7 @@ export const users = pgTable('users', {
   password: varchar('password', { length: 255 }).notNull(),
   displayName: varchar('display_name', { length: 100 }),
   bio: text('bio'),
+  status: varchar('status', { length: 20 }).default('online'),
   avatarColor: varchar('avatar_color', { length: 7 }).default('#4F46E5'),
   isOnline: boolean('is_online').default(false),
   lastSeen: timestamp('last_seen').defaultNow(),

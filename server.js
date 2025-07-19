@@ -5,6 +5,7 @@ const path = require('path');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 const { v4: uuidv4 } = require('uuid');
+const { storage } = require('./server/storage.js');
 
 const app = express();
 const server = createServer(app);
@@ -19,9 +20,9 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 5000;
 
-// Store active users and messages
-const activeUsers = new Map();
-const messages = [];
+// Store socket ID to user mapping
+const socketToUser = new Map();
+const userToSocket = new Map();
 
 // Security middleware
 app.use(helmet({
@@ -56,53 +57,87 @@ io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
   // Handle user joining
-  socket.on('join', (username) => {
-    if (!username || username.trim() === '') return;
-    
-    const sanitizedUsername = username.trim().substring(0, 50);
-    activeUsers.set(socket.id, {
-      id: socket.id,
-      username: sanitizedUsername,
-      joinedAt: new Date().toISOString()
-    });
+  socket.on('join', async (username) => {
+    try {
+      if (!username || username.trim() === '') return;
+      
+      const sanitizedUsername = username.trim().substring(0, 50);
+      
+      // Find or create user in database
+      let user = await storage.getUserByUsername(sanitizedUsername);
+      if (!user) {
+        user = await storage.createUser({
+          username: sanitizedUsername,
+          isOnline: true
+        });
+      } else {
+        await storage.updateUserOnlineStatus(user.id, true);
+      }
+      
+      // Store mappings
+      socketToUser.set(socket.id, user);
+      userToSocket.set(user.id, socket.id);
 
-    // Send recent messages to new user
-    socket.emit('message_history', messages.slice(-50));
-    
-    // Broadcast user joined
-    socket.broadcast.emit('user_joined', sanitizedUsername);
-    
-    // Send updated user list
-    io.emit('users_update', Array.from(activeUsers.values()));
+      // Send recent messages to new user
+      const recentMessages = await storage.getRecentMessages(50);
+      const formattedMessages = recentMessages.map(msg => ({
+        id: msg.id,
+        username: msg.user.username,
+        message: msg.message,
+        timestamp: msg.timestamp.toISOString(),
+        userId: msg.user.id
+      }));
+      
+      socket.emit('message_history', formattedMessages);
+      
+      // Broadcast user joined
+      socket.broadcast.emit('user_joined', sanitizedUsername);
+      
+      // Send updated user list
+      await broadcastUserList();
+    } catch (error) {
+      console.error('Error in join handler:', error);
+      socket.emit('error', 'Failed to join chat');
+    }
   });
 
   // Handle new messages
-  socket.on('send_message', (data) => {
-    const user = activeUsers.get(socket.id);
-    if (!user || !data.message || data.message.trim() === '') return;
+  socket.on('send_message', async (data) => {
+    try {
+      const user = socketToUser.get(socket.id);
+      if (!user || !data.message || data.message.trim() === '') return;
 
-    const message = {
-      id: uuidv4(),
-      username: user.username,
-      message: data.message.trim().substring(0, 500),
-      timestamp: new Date().toISOString(),
-      userId: socket.id
-    };
+      const trimmedMessage = data.message.trim().substring(0, 500);
+      
+      // Save message to database
+      const savedMessage = await storage.createMessage({
+        userId: user.id,
+        message: trimmedMessage
+      });
 
-    messages.push(message);
-    
-    // Keep only last 100 messages
-    if (messages.length > 100) {
-      messages.splice(0, messages.length - 100);
+      // Update user's last seen
+      await storage.updateUserLastSeen(user.id);
+
+      // Format message for broadcast
+      const message = {
+        id: savedMessage.id,
+        username: user.username,
+        message: savedMessage.message,
+        timestamp: savedMessage.timestamp.toISOString(),
+        userId: user.id
+      };
+
+      // Broadcast message to all users
+      io.emit('new_message', message);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      socket.emit('error', 'Failed to send message');
     }
-
-    // Broadcast message to all users
-    io.emit('new_message', message);
   });
 
   // Handle user typing
   socket.on('typing', (isTyping) => {
-    const user = activeUsers.get(socket.id);
+    const user = socketToUser.get(socket.id);
     if (!user) return;
 
     socket.broadcast.emit('user_typing', {
@@ -112,26 +147,66 @@ io.on('connection', (socket) => {
   });
 
   // Handle disconnection
-  socket.on('disconnect', () => {
-    const user = activeUsers.get(socket.id);
-    if (user) {
-      activeUsers.delete(socket.id);
-      socket.broadcast.emit('user_left', user.username);
-      io.emit('users_update', Array.from(activeUsers.values()));
+  socket.on('disconnect', async () => {
+    try {
+      const user = socketToUser.get(socket.id);
+      if (user) {
+        // Update user offline status
+        await storage.updateUserOnlineStatus(user.id, false);
+        
+        // Clean up mappings
+        socketToUser.delete(socket.id);
+        userToSocket.delete(user.id);
+        
+        // Broadcast user left
+        socket.broadcast.emit('user_left', user.username);
+        
+        // Send updated user list
+        await broadcastUserList();
+      }
+    } catch (error) {
+      console.error('Error handling disconnect:', error);
     }
     console.log('User disconnected:', socket.id);
   });
 });
 
+// Helper function to broadcast user list
+async function broadcastUserList() {
+  try {
+    const onlineUsers = Array.from(socketToUser.values()).map(user => ({
+      id: user.id,
+      username: user.username,
+      isOnline: true
+    }));
+    io.emit('users_update', onlineUsers);
+  } catch (error) {
+    console.error('Error broadcasting user list:', error);
+  }
+}
+
 // API routes
-app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    activeUsers: activeUsers.size,
-    totalMessages: messages.length
-  });
+app.get('/api/health', async (req, res) => {
+  try {
+    const messageCount = await storage.getMessageCount();
+    res.json({ 
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      activeUsers: socketToUser.size,
+      totalMessages: messageCount,
+      database: 'connected'
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      activeUsers: socketToUser.size,
+      database: 'error',
+      error: error.message
+    });
+  }
 });
 
 // Serve the main application

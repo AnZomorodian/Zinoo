@@ -15,6 +15,9 @@ Migrating project from Replit Agent to standard Replit environment for improved 
 - Built secure real-time messenger with Socket.IO
 - Implemented client/server separation and security features
 - Added input sanitization and message length limits
+- Added PostgreSQL database with Drizzle ORM
+- Implemented persistent message storage and user management
+- All messages and users now persist across server restarts
 
 ## User Preferences
 - (To be updated based on user preferences)

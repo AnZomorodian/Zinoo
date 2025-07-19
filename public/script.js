@@ -100,21 +100,8 @@ function setupEventListeners() {
         }
     });
     
-    // Bio character counter
-    const bioTextarea = document.getElementById('settingsBio');
-    if (bioTextarea) {
-        bioTextarea.addEventListener('input', updateBioCharCount);
-    }
-    
-    // Profile picture selector
-    document.querySelectorAll('.profile-option').forEach(option => {
-        option.addEventListener('click', selectProfile);
-    });
-    
-    // Status selector
-    document.querySelectorAll('.status-option').forEach(option => {
-        option.addEventListener('click', selectStatus);
-    });
+    // Initialize settings modal functionality
+    initializeSettingsModal();
     
     // Tab navigation
     document.querySelectorAll('.tab').forEach(tab => {
@@ -493,15 +480,26 @@ function openSettings() {
     // Set selected profile
     selectedProfile = currentUser.profilePicture || 'default';
     document.querySelectorAll('.profile-option').forEach(opt => opt.classList.remove('active'));
-    document.querySelector(`[data-profile="${selectedProfile}"]`).classList.add('active');
+    const profileElement = document.querySelector(`[data-profile="${selectedProfile}"]`);
+    if (profileElement) {
+        profileElement.classList.add('active');
+    }
     
     // Set selected status
     selectedStatus = currentUser.status || 'online';
     document.querySelectorAll('.status-option').forEach(opt => opt.classList.remove('active'));
-    document.querySelector(`[data-status="${selectedStatus}"]`).classList.add('active');
+    const statusElement = document.querySelector(`[data-status="${selectedStatus}"]`);
+    if (statusElement) {
+        statusElement.classList.add('active');
+    }
     
     // Switch to profile tab by default
     switchSettingsTab('profile');
+    
+    // Update settings tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchSettingsTab(btn.dataset.tab));
+    });
     
     settingsModal.classList.remove('hidden');
     overlay.classList.remove('hidden');
@@ -710,15 +708,21 @@ function updateBioCharCount() {
 }
 
 function selectProfile(e) {
+    const option = e.target.closest('.profile-option');
+    if (!option) return;
+    
     document.querySelectorAll('.profile-option').forEach(opt => opt.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-    selectedProfile = e.currentTarget.dataset.profile;
+    option.classList.add('active');
+    selectedProfile = option.dataset.profile;
 }
 
 function selectStatus(e) {
+    const option = e.target.closest('.status-option');
+    if (!option) return;
+    
     document.querySelectorAll('.status-option').forEach(opt => opt.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-    selectedStatus = e.currentTarget.dataset.status;
+    option.classList.add('active');
+    selectedStatus = option.dataset.status;
 }
 
 function switchTab(e) {
@@ -767,6 +771,28 @@ function switchToDMTab() {
     
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
     document.getElementById('dmChatTab').classList.add('active');
+}
+
+function initializeSettingsModal() {
+    // Bio character counter
+    const bioTextarea = document.getElementById('settingsBio');
+    if (bioTextarea) {
+        bioTextarea.addEventListener('input', updateBioCharCount);
+    }
+    
+    // Profile picture selector - use event delegation
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.profile-option')) {
+            selectProfile(e);
+        }
+    });
+    
+    // Status selector - use event delegation
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.status-option')) {
+            selectStatus(e);
+        }
+    });
 }
 
 function startDirectMessage(user) {

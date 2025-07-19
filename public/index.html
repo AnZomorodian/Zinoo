@@ -289,158 +289,65 @@
         </footer>
     </div>
 
-    <!-- Settings Modal -->
+    <!-- Simple Settings Modal -->
     <div id="settingsModal" class="modal hidden">
-        <div class="modal-content">
+        <div class="modal-content new-settings">
             <div class="modal-header">
                 <h2>Profile Settings</h2>
-                <button class="close-btn" id="closeSettingsBtn">×</button>
+                <button class="close-btn" onclick="closeSettings()">&times;</button>
             </div>
-            <div class="modal-body">
-                <div class="settings-tabs">
-                    <button type="button" class="tab-btn active" data-tab="profile">Profile</button>
-                    <button type="button" class="tab-btn" data-tab="history">History</button>
+            
+            <div class="settings-body">
+                <div class="form-field">
+                    <label>Display Name</label>
+                    <input type="text" id="newDisplayName" placeholder="How others see you" maxlength="50">
                 </div>
                 
-                <div class="tab-content">
-                    <!-- Profile Tab -->
-                    <div id="profileTab" class="tab-pane active">
-                        <div class="settings-content">
-                            <div class="form-group">
-                                <label for="settingsDisplayName">Display Name</label>
-                                <input type="text" id="settingsDisplayName" maxlength="100" placeholder="How others see you">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="settingsBio">Bio</label>
-                                <textarea id="settingsBio" placeholder="Tell others about yourself (minimum 30 characters)..." maxlength="300"></textarea>
-                                <div class="char-counter">
-                                    <span id="bioCharCount">0</span>/300 characters (min 30)
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="profileImageSelect">Profile Picture</label>
-                                <div class="profile-selector">
-                                    <div class="profile-grid">
-                                        <div class="profile-option active" data-profile="default">
-                                            <div class="profile-preview default">👤</div>
-                                            <span>Default</span>
-                                        </div>
-                                        <div class="profile-option" data-profile="avatar1">
-                                            <div class="profile-preview">👨‍💼</div>
-                                            <span>Business</span>
-                                        </div>
-                                        <div class="profile-option" data-profile="avatar2">
-                                            <div class="profile-preview">👩‍💻</div>
-                                            <span>Tech</span>
-                                        </div>
-                                        <div class="profile-option" data-profile="avatar3">
-                                            <div class="profile-preview">🎨</div>
-                                            <span>Creative</span>
-                                        </div>
-                                        <div class="profile-option" data-profile="avatar4">
-                                            <div class="profile-preview">🚀</div>
-                                            <span>Space</span>
-                                        </div>
-                                        <div class="profile-option" data-profile="avatar5">
-                                            <div class="profile-preview">🎮</div>
-                                            <span>Gamer</span>
-                                        </div>
-                                        <div class="profile-option" data-profile="avatar6">
-                                            <div class="profile-preview">🌟</div>
-                                            <span>Star</span>
-                                        </div>
-                                        <div class="profile-option" data-profile="avatar7">
-                                            <div class="profile-preview">🎭</div>
-                                            <span>Drama</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="settingsStatus">Status</label>
-                                <div class="status-selector">
-                                    <div class="status-option active" data-status="online">
-                                        <div class="status-indicator online"></div>
-                                        <span>Online</span>
-                                    </div>
-                                    <div class="status-option" data-status="away">
-                                        <div class="status-indicator away"></div>
-                                        <span>Away</span>
-                                    </div>
-                                    <div class="status-option" data-status="busy">
-                                        <div class="status-indicator busy"></div>
-                                        <span>Do Not Disturb</span>
-                                    </div>
-                                    <div class="status-option" data-status="invisible">
-                                        <div class="status-indicator invisible"></div>
-                                        <span>Invisible</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="userIdDisplay">User ID</label>
-                                <div class="readonly-field">
-                                    <input type="text" id="userIdDisplay" readonly>
-                                    <button type="button" class="copy-btn" data-copy="userId">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="lyCodeDisplay">LY Code</label>
-                                <div class="readonly-field">
-                                    <input type="text" id="lyCodeDisplay" readonly>
-                                    <button type="button" class="copy-btn" data-copy="lyCode">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div class="field-help">Share this code with friends to connect privately</div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="settingsAvatarColor">Avatar Color</label>
-                                <input type="color" id="settingsAvatarColor">
-                            </div>
-                            
-                            <div class="settings-actions">
-                                <button type="submit" class="primary-btn">Save Changes</button>
-                                <button type="button" class="secondary-btn" id="cancelSettingsBtn">Cancel</button>
-                            </div>
-                        </form>
+                <div class="form-field">
+                    <label>Bio</label>
+                    <textarea id="newBio" placeholder="Tell something about yourself..." maxlength="200" rows="3"></textarea>
+                    <small class="char-info">200 characters max</small>
+                </div>
+                
+                <div class="form-field">
+                    <label>Avatar Color</label>
+                    <input type="color" id="newAvatarColor" value="#667eea">
+                </div>
+                
+                <div class="form-field">
+                    <label>Status</label>
+                    <div class="status-buttons">
+                        <button type="button" class="status-btn active" data-status="online">
+                            <span class="dot online"></span> Online
+                        </button>
+                        <button type="button" class="status-btn" data-status="away">
+                            <span class="dot away"></span> Away
+                        </button>
+                        <button type="button" class="status-btn" data-status="busy">
+                            <span class="dot busy"></span> Busy
+                        </button>
                     </div>
-                    
-                    <!-- History Tab -->
-                    <div id="historyTab" class="tab-pane">
-                        <div class="history-section">
-                            <h3>Recent Activity</h3>
-                            <div id="profileHistory" class="history-list">
-                                <div class="history-item">
-                                    <span class="history-icon">👤</span>
-                                    <div class="history-content">
-                                        <div class="history-text">Profile created</div>
-                                        <div class="history-time">Today</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                </div>
+                
+                <div class="readonly-section">
+                    <div class="info-row">
+                        <span>User ID:</span>
+                        <span id="showUserId">#000000</span>
                     </div>
+                    <div class="info-row">
+                        <span>LY Code:</span>
+                        <span id="showLyCode">LY000000</span>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-save" onclick="saveNewSettings()">Save Changes</button>
+                    <button type="button" class="btn-cancel" onclick="closeSettings()">Cancel</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Overlay -->
     <div id="overlay" class="overlay hidden"></div>
 
     <script src="/socket.io/socket.io.js"></script>

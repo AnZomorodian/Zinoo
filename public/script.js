@@ -131,18 +131,15 @@ function setupEventListeners() {
     
     // Profile option selection
     document.querySelectorAll('.profile-option').forEach(option => {
-        option.addEventListener('click', selectProfile);
     });
     
     // Status option selection
     document.querySelectorAll('.status-option').forEach(option => {
-        option.addEventListener('click', selectStatus);
     });
     
     // Bio character counting
     const bioTextarea = document.getElementById('settingsBio');
     if (bioTextarea) {
-        bioTextarea.addEventListener('input', updateBioCharCount);
     }
     
     // Tab navigation
@@ -531,83 +528,65 @@ function handleUserTyping(data) {
     }
 }
 
+// Simple new settings system
+let selectedNewStatus = 'online';
+
 function openSettings() {
     if (!currentUser) {
-        console.log('No current user, cannot open settings');
         showSystemMessage('Please login first', 'error');
         return;
     }
     
-    console.log('Opening settings for user:', currentUser);
+    console.log('Opening simple settings for user:', currentUser);
     
-    // Populate current settings with error handling
-    try {
-        const displayNameInput = document.getElementById('settingsDisplayName');
-        const bioTextarea = document.getElementById('settingsBio');
-        const avatarColorInput = document.getElementById('settingsAvatarColor');
-        const userIdDisplay = document.getElementById('userIdDisplay');
-        const lyCodeDisplay = document.getElementById('lyCodeDisplay');
-        
-        if (displayNameInput) {
-            displayNameInput.value = currentUser.displayName || currentUser.username || '';
-            console.log('Set display name:', displayNameInput.value);
-        }
-        if (bioTextarea) {
-            bioTextarea.value = currentUser.bio || '';
-            console.log('Set bio:', bioTextarea.value);
-        }
-        if (avatarColorInput) {
-            avatarColorInput.value = currentUser.avatarColor || '#667eea';
-            console.log('Set avatar color:', avatarColorInput.value);
-        }
-        if (userIdDisplay) {
-            userIdDisplay.value = currentUser.userId || '';
-            console.log('Set user ID:', userIdDisplay.value);
-        }
-        if (lyCodeDisplay) {
-            lyCodeDisplay.value = currentUser.lyCode || '';
-            console.log('Set LY code:', lyCodeDisplay.value);
-        }
-        
-        // Update bio character count
-        updateBioCharCount();
-        
-        // Set selected profile
-        selectedProfile = currentUser.profilePicture || 'default';
-        document.querySelectorAll('.profile-option').forEach(opt => {
-            const isActive = opt.dataset.profile === selectedProfile;
-            opt.classList.toggle('active', isActive);
-            console.log('Profile option', opt.dataset.profile, 'active:', isActive);
-        });
-        
-        // Set selected status
-        selectedStatus = currentUser.status || 'online';
-        document.querySelectorAll('.status-option').forEach(opt => {
-            const isActive = opt.dataset.status === selectedStatus;
-            opt.classList.toggle('active', isActive);
-            console.log('Status option', opt.dataset.status, 'active:', isActive);
-        });
-        
-        // Switch to profile tab by default
-        switchSettingsTab('profile');
-        
-        // Ensure form handler is attached
-        const settingsForm = document.getElementById('profileForm');
-        if (settingsForm) {
-            settingsForm.onsubmit = handleSettingsUpdate;
-            console.log('Attached form submit handler');
-        }
-        
-        // Show the modal
-        settingsModal.classList.remove('hidden');
-        overlay.classList.remove('hidden');
-        
-        console.log('Settings modal opened successfully');
-        
-    } catch (error) {
-        console.error('Error opening settings:', error);
-        showSystemMessage('Error opening settings: ' + error.message, 'error');
-    }
+    // Populate the simple form
+    document.getElementById('newDisplayName').value = currentUser.displayName || currentUser.username || '';
+    document.getElementById('newBio').value = currentUser.bio || '';
+    document.getElementById('newAvatarColor').value = currentUser.avatarColor || '#667eea';
+    document.getElementById('showUserId').textContent = currentUser.userId || '#000000';
+    document.getElementById('showLyCode').textContent = currentUser.lyCode || 'LY000000';
+    
+    // Set current status
+    selectedNewStatus = currentUser.status || 'online';
+    document.querySelectorAll('.status-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.status === selectedNewStatus);
+    });
+    
+    // Add status button listeners
+    document.querySelectorAll('.status-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedNewStatus = btn.dataset.status;
+        };
+    });
+    
+    // Show modal
+    settingsModal.classList.remove('hidden');
+    overlay.classList.remove('hidden');
+    
+    console.log('Simple settings opened successfully');
+}
+
+function saveNewSettings() {
+    const displayName = document.getElementById('newDisplayName').value.trim();
+    const bio = document.getElementById('newBio').value.trim();
+    const avatarColor = document.getElementById('newAvatarColor').value;
+    
+    console.log('Saving new settings:', { displayName, bio, avatarColor, status: selectedNewStatus });
+    
+    // Send update to server
+    socket.emit('update_profile', {
+        displayName: displayName || undefined,
+        bio: bio || undefined,
+        avatarColor: avatarColor,
+        status: selectedNewStatus,
+        profilePicture: 'default'
+    });
+    
+    // Close modal
+    closeSettings();
+    showSystemMessage('Profile updated successfully!', 'success');
 }
 
 function closeSettings() {
@@ -615,37 +594,7 @@ function closeSettings() {
     overlay.classList.add('hidden');
 }
 
-function handleSettingsUpdate(e) {
-    if (e) e.preventDefault();
-    
-    const displayName = document.getElementById('settingsDisplayName').value.trim();
-    const bio = document.getElementById('settingsBio').value.trim();
-    const avatarColor = document.getElementById('settingsAvatarColor').value;
-    
-    // Validate bio length only if bio is provided
-    if (bio && bio.length > 0 && bio.length < 30) {
-        showSystemMessage('Bio must be at least 30 characters long', 'error');
-        return;
-    }
-    
-    console.log('Sending profile update:', {
-        displayName: displayName || undefined,
-        bio: bio || undefined,
-        status: selectedStatus || 'online',
-        avatarColor,
-        profilePicture: selectedProfile || 'default'
-    });
-    
-    socket.emit('update_profile', {
-        displayName: displayName || undefined,
-        bio: bio || undefined,
-        status: selectedStatus || 'online',
-        avatarColor,
-        profilePicture: selectedProfile || 'default'
-    });
-    
-    // Don't close settings immediately, wait for response
-}
+// Old broken functions removed - using new simple system above
 
 function handleProfileUpdated(updatedProfile) {
     console.log('Profile updated received:', updatedProfile);
@@ -759,38 +708,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function switchSettingsTab(tabName) {
-    // Remove active class from all tabs and panes
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
-    
-    // Add active class to selected tab and pane
-    const selectedTabBtn = document.querySelector(`[data-tab="${tabName}"]`);
-    const selectedTabPane = document.getElementById(`${tabName}Tab`);
-    
-    if (selectedTabBtn) selectedTabBtn.classList.add('active');
-    if (selectedTabPane) selectedTabPane.classList.add('active');
-}
 
-function initializeSettingsModal() {
-    // This function initializes the settings modal functionality
-    // Profile option selection
-    document.querySelectorAll('.profile-option').forEach(option => {
-        option.addEventListener('click', selectProfile);
-    });
-    
-    // Status option selection  
-    document.querySelectorAll('.status-option').forEach(option => {
-        option.addEventListener('click', selectStatus);
-    });
-    
-    // Settings tab navigation
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            switchSettingsTab(btn.dataset.tab);
-        });
-    });
-}
 
 function addToProfileHistory(historyItem) {
     const historyList = document.getElementById('profileHistory');
@@ -858,40 +776,8 @@ function getProfilePicture(profileType) {
     return profilePictures[profileType] || profilePictures['default'];
 }
 
-function updateBioCharCount() {
-    const bioTextarea = document.getElementById('settingsBio');
-    if (!bioTextarea || !bioCharCount) return;
-    
-    const charCount = bioTextarea.value.length;
-    bioCharCount.textContent = charCount;
-    
-    const charCounter = document.querySelector('.char-counter');
-    if (charCounter) {
-        if (charCount < 30 && charCount > 0) {
-            charCounter.classList.add('error');
-        } else {
-            charCounter.classList.remove('error');
-        }
-    }
-}
 
-function selectProfile(e) {
-    const option = e.target.closest('.profile-option');
-    if (!option) return;
-    
-    document.querySelectorAll('.profile-option').forEach(opt => opt.classList.remove('active'));
-    option.classList.add('active');
-    selectedProfile = option.dataset.profile;
-}
 
-function selectStatus(e) {
-    const option = e.target.closest('.status-option');
-    if (!option) return;
-    
-    document.querySelectorAll('.status-option').forEach(opt => opt.classList.remove('active'));
-    option.classList.add('active');
-    selectedStatus = option.dataset.status;
-}
 
 function switchTab(e) {
     const tabName = e.currentTarget.dataset.tab;
@@ -941,27 +827,6 @@ function switchToDMTab() {
     document.getElementById('dmChatTab').classList.add('active');
 }
 
-function initializeSettingsModal() {
-    // Bio character counter
-    const bioTextarea = document.getElementById('settingsBio');
-    if (bioTextarea) {
-        bioTextarea.addEventListener('input', updateBioCharCount);
-    }
-    
-    // Profile picture selector - use event delegation
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('.profile-option')) {
-            selectProfile(e);
-        }
-    });
-    
-    // Status selector - use event delegation
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('.status-option')) {
-            selectStatus(e);
-        }
-    });
-}
 
 function startDirectMessage(user) {
     // Add user to DM list if not already there

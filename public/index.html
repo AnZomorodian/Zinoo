@@ -3,63 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Linkly - Connect Instantly</title>
+    <title>LinkLy - Modern Team Messenger</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="logo.png">
 </head>
 <body>
-    <!-- Authentication Screen -->
-    <div id="authScreen" class="auth-screen active">
-        <div class="auth-container">
-            <div class="auth-left">
-                <div class="brand-section">
-                    <div class="brand-logo">
-                        <img src="logo.png" alt="LinkLy Logo" class="logo-image">
-                        <h1>LinkLy</h1>
-                    </div>
-                    <p class="brand-tagline">Connect with your team instantly</p>
-                    <div class="feature-highlights">
-                        <div class="feature-item">
-                            <span class="feature-icon">⚡</span>
-                            <span>Real-time messaging</span>
+    <div class="app-container">
+        <!-- Authentication Screen -->
+        <div id="authScreen" class="auth-screen active">
+            <div class="auth-content">
+                <!-- Left Sidebar -->
+                <div class="auth-sidebar">
+                    <div class="brand-section">
+                        <div class="brand-logo">
+                            <div class="logo-icon">L</div>
+                            <div class="brand-text">
+                                <h1>LinkLy</h1>
+                                <p class="brand-tagline">Connect. Communicate. Collaborate.</p>
+                            </div>
                         </div>
-                        <div class="feature-item">
+                    </div>
+                    
+                    <ul class="brand-features">
+                        <li>
+                            <span class="feature-icon">💬</span>
+                            Real-time messaging with your team
+                        </li>
+                        <li>
+                            <span class="feature-icon">🌟</span>
+                            Beautiful, modern interface
+                        </li>
+                        <li>
                             <span class="feature-icon">🔒</span>
-                            <span>Secure authentication</span>
-                        </div>
-                        <div class="feature-item">
-                            <span class="feature-icon">🌍</span>
-                            <span>Global connectivity</span>
-                        </div>
-                    </div>
+                            Secure and private conversations
+                        </li>
+                        <li>
+                            <span class="feature-icon">⚡</span>
+                            Lightning-fast performance
+                        </li>
+                        <li>
+                            <span class="feature-icon">📱</span>
+                            Mobile-responsive design
+                        </li>
+                    </ul>
                 </div>
-            </div>
-            
-            <div class="auth-right">
-                <div class="auth-forms">
-                    <!-- Sign In Form -->
-                    <div id="signInForm" class="auth-form-container active">
-                        <div class="form-header">
-                            <h2>Welcome back</h2>
-                            <p>Sign in to your Linkly account</p>
-                        </div>
-                        
-                        <form id="loginForm" class="auth-form">
+                
+                <!-- Right Main Area -->
+                <div class="auth-main">
+                    <div class="auth-card">
+                        <!-- Sign In Form -->
+                        <form id="loginForm" class="auth-form active">
+                            <div class="form-header">
+                                <h2 class="form-title">Welcome Back</h2>
+                                <p class="form-subtitle">Sign in to your LinkLy account</p>
+                            </div>
+                            
+                            <div id="authError" class="auth-error hidden"></div>
+                            
                             <div class="form-group">
                                 <label for="signInEmail">Email or Username</label>
-                                <input type="text" id="signInEmail" placeholder="Enter your email or username" required>
+                                <div class="input-wrapper">
+                                    <input type="text" id="signInEmail" class="form-input" placeholder="Enter your email or username" required>
+                                </div>
                             </div>
                             
                             <div class="form-group">
                                 <label for="signInPassword">Password</label>
-                                <div class="password-input-wrapper">
-                                    <input type="password" id="signInPassword" placeholder="Enter your password" required minlength="6">
+                                <div class="input-wrapper">
+                                    <input type="password" id="signInPassword" class="form-input" placeholder="Enter your password" required minlength="6">
                                     <button type="button" class="password-toggle" data-input="signInPassword">
-                                        <svg class="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                             <circle cx="12" cy="12" r="3"></circle>
                                         </svg>
-                                        <svg class="eye-off-icon hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg class="eye-off-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
                                             <line x1="1" y1="1" x2="23" y2="23"></line>
                                         </svg>
@@ -67,45 +85,54 @@
                                 </div>
                             </div>
                             
-                            <button type="submit" class="primary-btn">
+                            <button type="submit" class="auth-button">
                                 <span class="btn-text">Sign In</span>
-                                <span class="btn-loading hidden">Signing in...</span>
+                                <div class="loading-spinner hidden"></div>
                             </button>
+                            
+                            <div class="form-switch">
+                                Don't have an account? <a href="#" id="showSignUp" class="form-switch-link">Create one</a>
+                            </div>
                         </form>
                         
-                        <div class="form-switch">
-                            <p>Don't have an account? <button type="button" id="showSignUp" class="link-btn">Sign up</button></p>
-                        </div>
-                    </div>
-                    
-                    <!-- Sign Up Form -->
-                    <div id="signUpForm" class="auth-form-container">
-                        <div class="form-header">
-                            <h2>Join Linkly</h2>
-                            <p>Create your account and start connecting</p>
-                        </div>
-                        
+                        <!-- Sign Up Form -->
                         <form id="registerForm" class="auth-form">
+                            <div class="form-header">
+                                <h2 class="form-title">Join LinkLy</h2>
+                                <p class="form-subtitle">Create your account and start collaborating</p>
+                            </div>
+                            
                             <div class="form-group">
                                 <label for="signUpUsername">Username</label>
-                                <input type="text" id="signUpUsername" placeholder="Choose a unique username" required maxlength="50">
+                                <div class="input-wrapper">
+                                    <input type="text" id="signUpUsername" class="form-input" placeholder="Choose a username" required maxlength="50">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="signUpDisplayName">Display Name</label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="signUpDisplayName" class="form-input" placeholder="Your display name (optional)" maxlength="100">
+                                </div>
                             </div>
                             
                             <div class="form-group">
                                 <label for="signUpEmail">Email</label>
-                                <input type="email" id="signUpEmail" placeholder="Enter your email" required maxlength="255">
+                                <div class="input-wrapper">
+                                    <input type="email" id="signUpEmail" class="form-input" placeholder="Enter your email" required maxlength="255">
+                                </div>
                             </div>
                             
                             <div class="form-group">
                                 <label for="signUpPassword">Password</label>
-                                <div class="password-input-wrapper">
-                                    <input type="password" id="signUpPassword" placeholder="Create a password (min 6 characters)" required minlength="6">
+                                <div class="input-wrapper">
+                                    <input type="password" id="signUpPassword" class="form-input" placeholder="Create a password (min 6 characters)" required minlength="6">
                                     <button type="button" class="password-toggle" data-input="signUpPassword">
-                                        <svg class="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                             <circle cx="12" cy="12" r="3"></circle>
                                         </svg>
-                                        <svg class="eye-off-icon hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg class="eye-off-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
                                             <line x1="1" y1="1" x2="23" y2="23"></line>
                                         </svg>
@@ -113,267 +140,184 @@
                                 </div>
                             </div>
                             
-                            <div class="form-group">
-                                <label for="signUpDisplayName">Display Name (Optional)</label>
-                                <input type="text" id="signUpDisplayName" placeholder="How others will see you" maxlength="100">
-                            </div>
-                            
-                            <button type="submit" class="primary-btn">
+                            <button type="submit" class="auth-button">
                                 <span class="btn-text">Create Account</span>
-                                <span class="btn-loading hidden">Creating account...</span>
+                                <div class="loading-spinner hidden"></div>
                             </button>
+                            
+                            <div class="form-switch">
+                                Already have an account? <a href="#" id="showSignIn" class="form-switch-link">Sign in</a>
+                            </div>
                         </form>
-                        
-                        <div class="form-switch">
-                            <p>Already have an account? <button type="button" id="showSignIn" class="link-btn">Sign in</button></p>
-                        </div>
-                    </div>
-                    
-                    <div id="authError" class="error-message hidden"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Chat Interface -->
-    <div id="chatContainer" class="chat-container hidden">
-        <header class="chat-header">
-            <div class="header-left">
-                <div class="brand-section">
-                    <div class="logo-gradient">
-                        <img src="logo.png" alt="LinkLy Logo" class="logo-image-small">
-                        <h1>LinkLy</h1>
-                    </div>
-                    <div class="header-tagline">Real-time messaging</div>
-                </div>
-                <div class="connection-status">
-                    <span id="connectionStatus" class="status-dot"></span>
-                    <span id="statusText">Connecting...</span>
-                </div>
-            </div>
-            <div class="header-center">
-                <div class="search-container">
-                    <div class="search-input-wrapper">
-                        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <path d="m21 21-4.35-4.35"></path>
-                        </svg>
-                        <input type="text" id="userSearchInput" placeholder="Search user by ID (#123456)" maxlength="7">
-                        <button id="searchUserBtn" class="search-btn">Search</button>
                     </div>
                 </div>
             </div>
-            <div class="header-right">
-                <div class="user-info">
-                    <span id="currentUserName" class="current-user"></span>
-                    <span id="currentUserId" class="current-user-id"></span>
-                </div>
-                <button id="settingsBtn" class="icon-btn" title="Settings">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V6a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
-                </button>
-                <button id="logoutBtn" class="icon-btn" title="Sign Out">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16,17 21,12 16,7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                </button>
-            </div>
-        </header>
-
-        <div class="chat-layout">
-            <!-- Sidebar -->
-            <aside class="sidebar">
-                <div class="users-section">
-                    <h3>Online Users (<span id="userCount">0</span>)</h3>
-                    <ul id="usersList"></ul>
-                </div>
-                
-                <div class="features-section">
-                    <h3>Security Features</h3>
-                    <ul class="features-list">
-                        <li>✅ Password protected</li>
-                        <li>✅ Real-time messaging</li>
-                        <li>✅ Input sanitization</li>
-                        <li>✅ Unique constraints</li>
-                        <li>✅ Persistent storage</li>
-                        <li>✅ Secure authentication</li>
-                    </ul>
-                </div>
-            </aside>
-
-            <!-- Chat Area -->
-            <main class="chat-main">
-                <!-- Tab Navigation -->
-                <div class="chat-tabs">
-                    <div class="tab active" data-tab="public">
-                        <span class="tab-icon">🌐</span>
-                        <span>Public Chat</span>
-                        <span class="tab-indicator"></span>
-                    </div>
-                    <div class="tab" data-tab="dms">
-                        <span class="tab-icon">💬</span>
-                        <span>Direct Messages</span>
-                        <span class="tab-badge hidden" id="dmNotifications">0</span>
-                        <span class="tab-indicator"></span>
-                    </div>
-                </div>
-
-                <!-- Public Chat Tab -->
-                <div class="tab-content active" id="publicChatTab">
-                    <div id="messagesContainer" class="messages-container">
-                        <div class="welcome-message">
-                            <div class="welcome-content">
-                                <span class="welcome-icon">💬</span>
-                                <h3>Welcome to Linkly!</h3>
-                                <p>Start a conversation and connect with your team</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div id="typingIndicator" class="typing-indicator hidden"></div>
-                    
-                    <div class="message-input-container">
-                        <div class="message-input-wrapper">
-                            <input type="text" 
-                                   id="messageInput" 
-                                   placeholder="Type your message..." 
-                                   maxlength="500"
-                                   autocomplete="off">
-                            <button id="sendButton">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                                    <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Direct Messages Tab -->
-                <div class="tab-content" id="dmChatTab">
-                    <div class="dm-container">
-                        <div class="dm-sidebar">
-                            <div class="dm-header">
-                                <h3>Direct Messages</h3>
-                                <button id="newDmBtn" class="new-dm-btn">+</button>
-                            </div>
-                            <div class="dm-list" id="dmList">
-                                <div class="no-dms">
-                                    <span class="no-dms-icon">💬</span>
-                                    <p>No direct messages yet</p>
-                                    <p class="no-dms-hint">Search for users to start chatting!</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="dm-chat-area">
-                            <div class="dm-welcome">
-                                <span class="dm-welcome-icon">🔒</span>
-                                <h3>Private Messaging</h3>
-                                <p>Select a conversation or start a new one</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
         </div>
         
-        <!-- Footer -->
-        <footer class="chat-footer">
-            <div class="footer-content">
-                <div class="footer-left">
-                    <span class="footer-brand">LinkLy</span>
-                </div>
-                <div class="footer-center">
-                    <span class="footer-team">DeepInk Team</span>
-                </div>
-                <div class="footer-right">
-                    <div class="social-links">
-                        <a href="https://t.me/+YourTelegramLink" target="_blank" class="social-link" title="Join us on Telegram">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16l-1.61 7.59c-.12.54-.43.67-.88.42l-2.39-1.76-1.15 1.11c-.13.13-.24.24-.49.24l.17-2.47 4.54-4.1c.2-.18-.04-.28-.3-.1l-5.62 3.54-2.42-.76c-.53-.16-.54-.53.11-.78l9.46-3.65c.44-.16.83.1.68.78z"/>
+        <!-- Chat Interface -->
+        <div id="chatContainer" class="chat-container hidden">
+            <!-- Sidebar -->
+            <div class="chat-sidebar">
+                <!-- User Profile Section -->
+                <div class="sidebar-header">
+                    <div class="user-profile">
+                        <div id="currentUserAvatar" class="user-avatar"></div>
+                        <div class="user-info">
+                            <h3 id="currentUserName">User</h3>
+                            <span id="currentUserId">#000000</span>
+                        </div>
+                    </div>
+                    <div class="sidebar-actions">
+                        <button id="settingsBtn" class="action-btn" title="Settings">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                             </svg>
-                        </a>
-                        <a href="https://linkedin.com/company/deepink-team" target="_blank" class="social-link" title="Connect on LinkedIn">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M22.23 0H1.77C.8 0 0 .77 0 1.72v20.56C0 23.23.8 24 1.77 24h20.46c.98 0 1.77-.77 1.77-1.72V1.72C24 .77 23.2 0 22.23 0zM7.27 20.1H3.65V9.24h3.62V20.1zM5.47 7.76h-.03c-1.22 0-2.01-.83-2.01-1.91 0-1.08.82-1.92 2.05-1.92 1.23 0 2.01.83 2.04 1.92 0 1.08-.82 1.91-2.05 1.91zM20.34 20.1h-3.63v-5.8c0-1.45-.52-2.45-1.83-2.45-1 0-1.6.67-1.87 1.32-.1.23-.11.55-.11.88v6.05H9.28s.05-9.82 0-10.84h3.63v1.54a3.6 3.6 0 0 1 3.26-1.8c2.39 0 4.18 1.56 4.18 4.89v6.21z"/>
+                        </button>
+                        <button id="logoutBtn" class="action-btn" title="Logout">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                                <polyline points="16,17 21,12 16,7"></polyline>
+                                <line x1="21" y1="12" x2="9" y2="12"></line>
                             </svg>
-                        </a>
-                        <a href="https://github.com/deepink-team" target="_blank" class="social-link" title="View on GitHub">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 0C5.374 0 0 5.373 0 12 0 17.302 3.438 21.8 8.207 23.387c.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
-                            </svg>
-                        </a>
+                        </button>
                     </div>
                 </div>
-            </div>
-        </footer>
-    </div>
-
-    <!-- Simple Settings Modal -->
-    <div id="settingsModal" class="modal hidden">
-        <div class="modal-content new-settings">
-            <div class="modal-header">
-                <h2>Profile Settings</h2>
-                <button class="close-btn" onclick="closeSettings()">&times;</button>
+                
+                <!-- Search Section -->
+                <div class="search-section">
+                    <input type="text" id="userSearchInput" class="search-input" placeholder="Search users by ID (#123456)">
+                </div>
+                
+                <!-- Online Users -->
+                <div class="users-section">
+                    <div class="section-title">Online Users (<span id="userCount">0</span>)</div>
+                    <ul id="usersList" class="users-list">
+                        <!-- Users will be populated here -->
+                    </ul>
+                </div>
             </div>
             
-            <div class="settings-body">
-                <div class="form-field">
-                    <label>Display Name</label>
-                    <input type="text" id="newDisplayName" placeholder="How others see you" maxlength="50">
-                </div>
-                
-                <div class="form-field">
-                    <label>Bio</label>
-                    <textarea id="newBio" placeholder="Tell something about yourself..." maxlength="200" rows="3"></textarea>
-                    <small class="char-info">200 characters max</small>
-                </div>
-                
-                <div class="form-field">
-                    <label>Avatar Color</label>
-                    <input type="color" id="newAvatarColor" value="#667eea">
-                </div>
-                
-                <div class="form-field">
-                    <label>Status</label>
-                    <div class="status-buttons">
-                        <button type="button" class="status-btn active" data-status="online">
-                            <span class="dot online"></span> Online
-                        </button>
-                        <button type="button" class="status-btn" data-status="away">
-                            <span class="dot away"></span> Away
-                        </button>
-                        <button type="button" class="status-btn" data-status="busy">
-                            <span class="dot busy"></span> Busy
-                        </button>
+            <!-- Main Chat Area -->
+            <div class="chat-main">
+                <!-- Chat Header -->
+                <div class="chat-header">
+                    <h2 class="chat-title">General Chat</h2>
+                    <div class="connection-status">
+                        <div id="connectionStatus" class="status-indicator"></div>
+                        <span id="statusText" class="status-text">Connecting...</span>
                     </div>
                 </div>
                 
-                <div class="readonly-section">
-                    <div class="info-row">
+                <!-- Messages Container -->
+                <div id="messagesContainer" class="messages-container">
+                    <div class="welcome-message">
+                        <div class="welcome-content">
+                            <div class="welcome-icon">🚀</div>
+                            <h3>Welcome to LinkLy!</h3>
+                            <p>Start a conversation and connect with your team. Send your first message to get the conversation rolling!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Typing Indicator -->
+                <div id="typingIndicator" class="typing-indicator hidden"></div>
+                
+                <!-- Message Input -->
+                <div class="message-input-container">
+                    <div class="input-wrapper-chat">
+                        <textarea id="messageInput" class="message-input" placeholder="Type your message..." rows="1"></textarea>
+                        <button id="sendButton" class="send-button" title="Send message">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Profile Settings</h3>
+                <button id="closeSettings" class="close-btn" onclick="closeSettings()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <form class="settings-form">
+                <div class="form-group">
+                    <label for="newDisplayName">Display Name</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="newDisplayName" class="form-input" placeholder="Your display name" maxlength="100">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="newAvatarColor">Avatar Color</label>
+                        <div class="input-wrapper">
+                            <input type="color" id="newAvatarColor" class="form-input" value="#667eea">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="newBio">Bio</label>
+                    <div class="input-wrapper">
+                        <textarea id="newBio" class="form-input" placeholder="Tell us about yourself..." rows="3" maxlength="500"></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Status</label>
+                    <div class="status-selector">
+                        <div class="status-option active" data-status="online">
+                            <div class="status-dot online"></div>
+                            <span>Online</span>
+                        </div>
+                        <div class="status-option" data-status="away">
+                            <div class="status-dot away"></div>
+                            <span>Away</span>
+                        </div>
+                        <div class="status-option" data-status="busy">
+                            <div class="status-dot busy"></div>
+                            <span>Busy</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Account Information</label>
+                    <div class="readonly-info">
                         <span>User ID:</span>
                         <span id="showUserId">#000000</span>
                     </div>
-                    <div class="info-row">
+                    <div class="readonly-info">
                         <span>LY Code:</span>
                         <span id="showLyCode">LY000000</span>
                     </div>
                 </div>
                 
                 <div class="form-actions">
-                    <button type="button" class="btn-save" onclick="saveNewSettings()">Save Changes</button>
-                    <button type="button" class="btn-cancel" onclick="closeSettings()">Cancel</button>
+                    <button type="button" class="btn-secondary" onclick="closeSettings()">Cancel</button>
+                    <button type="button" class="btn-primary" onclick="saveNewSettings()">Save Changes</button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
-
-    <div id="overlay" class="overlay hidden"></div>
-
+    
+    <!-- Overlay for Modal -->
+    <div id="overlay" class="hidden"></div>
+    
+    <!-- Scripts -->
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
 </body>

@@ -619,7 +619,9 @@ body {
     padding: 1.5rem;
     overflow-y: auto;
     scroll-behavior: smooth;
-    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 0 0 20px 20px;
+    margin: 0 1rem 1rem 1rem;
 }
 
 .welcome-message {
@@ -1719,15 +1721,14 @@ select:focus {
     margin-bottom: 0.5rem;
 }
 
-/* Enhanced Footer */
+/* Simple Footer */
 .chat-footer {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-top: 3px solid #5b6de8;
-    padding: 1.5rem 2rem;
+    background: transparent;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 2rem;
     position: sticky;
     bottom: 0;
     z-index: 50;
-    box-shadow: 0 -4px 20px rgba(102, 126, 234, 0.3);
 }
 
 .footer-content {
@@ -1751,20 +1752,17 @@ select:focus {
 
 .footer-brand {
     font-weight: 700;
-    color: white;
-    font-size: 1.2rem;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    color: #667eea;
+    font-size: 1rem;
 }
 
 .footer-version {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 0.25rem 0.75rem;
-    border-radius: 16px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(4px);
+    background: #f1f5f9;
+    color: #6b7280;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 500;
 }
 
 .footer-stats {
@@ -1776,13 +1774,9 @@ select:focus {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.9);
+    color: #6b7280;
     font-weight: 500;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(4px);
+    font-size: 0.8rem;
 }
 
 .stat-icon {
@@ -1799,12 +1793,8 @@ select:focus {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: rgba(255, 255, 255, 0.9);
-    background: rgba(255, 255, 255, 0.1);
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(4px);
+    color: #6b7280;
+    font-size: 0.8rem;
 }
 
 .server-indicator {
@@ -1834,14 +1824,12 @@ select:focus {
     display: flex;
     align-items: center;
     gap: 0.375rem;
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
-    padding: 0.375rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(4px);
+    background: #f1f5f9;
+    color: #6b7280;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
 }
 
 .badge-icon {

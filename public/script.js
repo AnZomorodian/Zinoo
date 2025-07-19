@@ -44,6 +44,23 @@ let isTyping = false;
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
+    // Check for existing session first
+    const token = localStorage.getItem('authToken');
+    const userData = localStorage.getItem('userData');
+    
+    if (token && userData) {
+        try {
+            currentUser = JSON.parse(userData);
+            showChat();
+            // Validate session with server
+            socket.emit('validate_token', token);
+        } catch (error) {
+            console.error('Session restore failed:', error);
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
+        }
+    }
+    
     setupEventListeners();
     checkConnection();
 });
@@ -93,12 +110,14 @@ function setupEventListeners() {
     });
     
     // User search
-    searchUserBtn.addEventListener('click', handleUserSearch);
-    userSearchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            handleUserSearch();
-        }
-    });
+    if (searchUserBtn) searchUserBtn.addEventListener('click', handleUserSearch);
+    if (userSearchInput) {
+        userSearchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleUserSearch();
+            }
+        });
+    }
     
     // Initialize settings modal functionality
     initializeSettingsModal();
@@ -123,7 +142,12 @@ function setupEventListeners() {
     });
     
     // Logout
-    logoutBtn.addEventListener('click', handleLogout);
+    if (logoutBtn) logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        socket.disconnect();
+        location.reload();
+    });
     
     // Socket events
     setupSocketListeners();
@@ -144,7 +168,15 @@ function setupSocketListeners() {
     });
     
     // Auth events
-    socket.on('auth_success', handleAuthSuccess);
+    socket.on('auth_success', (userData) => {
+        console.log('Auth success:', userData);
+        currentUser = userData;
+        // Save session data for persistence
+        localStorage.setItem('authToken', userData.token || Date.now().toString());
+        localStorage.setItem('userData', JSON.stringify(userData));
+        hideAuthError();
+        showChat();
+    });
     socket.on('auth_error', handleAuthError);
     
     // Chat events
@@ -188,11 +220,14 @@ function handleSignIn(e) {
     // Show loading state
     const btnText = loginForm.querySelector('.btn-text');
     const btnLoading = loginForm.querySelector('.btn-loading');
-    btnText.classList.add('hidden');
-    btnLoading.classList.remove('hidden');
+    if (btnText) btnText.classList.add('hidden');
+    if (btnLoading) btnLoading.classList.remove('hidden');
     
     // Send authentication request
     socket.emit('authenticate', { emailOrUsername, password });
+    
+    // Store auth attempt for session restoration
+    localStorage.setItem('lastAuthAttempt', JSON.stringify({ emailOrUsername, timestamp: Date.now() }));
 }
 
 function handleSignUp(e) {
@@ -501,6 +536,12 @@ function openSettings() {
         btn.addEventListener('click', () => switchSettingsTab(btn.dataset.tab));
     });
     
+    // Setup save button handler
+    const saveBtn = document.getElementById('saveSettingsBtn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', handleSettingsUpdate);
+    }
+    
     settingsModal.classList.remove('hidden');
     overlay.classList.remove('hidden');
 }
@@ -511,11 +552,10 @@ function closeSettings() {
 }
 
 function handleSettingsUpdate(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
     
     const displayName = document.getElementById('settingsDisplayName').value.trim();
     const bio = document.getElementById('settingsBio').value.trim();
-    const status = document.getElementById('settingsStatus').value;
     const avatarColor = document.getElementById('settingsAvatarColor').value;
     
     // Validate bio length
